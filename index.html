@@ -1270,7 +1270,8 @@ function updateDateWeekday(){
 
 /* ================= CALENDAR RENDER ================= */
 function renderCalendar(){
-  document.getElementById('calTitle').textContent = `${MONTHS_ID[viewMonth]} ${viewYear}`;
+  const calTitleEl = document.getElementById('calTitle') || document.getElementById('calMonthLabel');
+  if(calTitleEl) calTitleEl.textContent = `${MONTHS_ID[viewMonth]} ${viewYear}`;
   const grid = document.getElementById('calGrid');
   const hint = document.getElementById('loadingHint');
 
