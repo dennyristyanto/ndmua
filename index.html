@@ -475,6 +475,8 @@ body.preview-open{ overflow:hidden; touch-action:none; }
 
 /* ── List card & filters ──────────────────────────────── */
 .list-card{ background:var(--card); border-radius:var(--r-lg); padding:16px; box-shadow:var(--shadow-sm); border:0.5px solid var(--line); }
+.tab-toggle-btn{ padding:10px 8px; border-radius:var(--r-lg); border:none; font-family:inherit; font-size:13px; font-weight:700; cursor:pointer; background:var(--rose); color:#fff; transition:background 0.2s; }
+.tab-toggle-inactive{ background:var(--card); color:var(--ink-2); border:1px solid var(--line-strong); }
 .filter-chips{ display:flex; gap:8px; flex-wrap:wrap; }
 .filter-chip{ display:inline-flex; align-items:center; gap:5px; padding:6px 13px; border-radius:var(--r-pill); font-size:12.5px; font-weight:700; background:rgba(255,255,255,0.85); color:var(--ink-2); border:1px solid var(--line-strong); cursor:pointer; box-shadow:var(--shadow-xs); -webkit-tap-highlight-color:transparent; }
 .filter-chip:active{ transform:scale(0.96); }
@@ -794,47 +796,103 @@ body.preview-open{ overflow:hidden; touch-action:none; }
   </div>
 
   <div id="viewBookings" class="view-content" style="display:none;">
-    <div class="list-card" style="margin-bottom:16px;">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
-        <div class="filter-select-wrap">
-          <select id="bookingsStatusSelect" class="content-filter-select" onchange="bookingsStatusFilter=this.value;renderBookingsList();">
-            <option value="upcoming">Upcoming</option>
-            <option value="all">All</option>
-            <option value="done">Done</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
-        </div>
-        <div class="filter-select-wrap">
-          <select id="bookingsStageSelect" class="content-filter-select" onchange="activeFilter=this.value;renderBookingsList();">
-            <option value="All">Payment Stage</option>
-            <option value="No Deposit Yet">No Deposit Yet</option>
-            <option value="Deposit 1">Deposit 1</option>
-            <option value="Deposit 2">Deposit 2</option>
-            <option value="Full Payment">Paid in Full</option>
-          </select>
-        </div>
-        <div class="filter-select-wrap">
-          <select id="bookingsHandledBySelect" class="content-filter-select" onchange="bookingsHandledByFilter=this.value;renderBookingsList();">
-            <option value="all">Handled By</option>
-          </select>
-        </div>
-        <div class="filter-select-wrap">
-          <select id="bookingsPackageSelect" class="content-filter-select" onchange="bookingsPackageFilter=this.value;renderBookingsList();">
-            <option value="all">Package</option>
-          </select>
-        </div>
-      </div>
-      <div id="bookingsCount" style="font-size:12px;font-weight:700;color:var(--ink-soft);"></div>
+    <div style="display:flex;gap:8px;margin-bottom:12px;">
+      <button class="tab-toggle-btn" id="tabUpcoming" onclick="switchBookingsTab('upcoming')" style="flex:1;">All Bookings</button>
+      <button class="tab-toggle-btn tab-toggle-inactive" id="tabHistory" onclick="switchBookingsTab('history')" style="flex:1;">Booking History</button>
     </div>
-    <div id="bookingsList"></div>
+    <div id="panelUpcoming">
+      <div class="list-card" style="margin-bottom:16px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+          <div class="filter-select-wrap">
+            <select id="bookingsMonthSelect" class="content-filter-select" onchange="bookingsMonthFilter=this.value;renderBookingsList();">
+              <option value="all">Month</option>
+            </select>
+          </div>
+          <div class="filter-select-wrap">
+            <select id="bookingsStageSelect" class="content-filter-select" onchange="activeFilter=this.value;renderBookingsList();">
+              <option value="All">Payment Stage</option>
+              <option value="No Deposit Yet">No Deposit Yet</option>
+              <option value="Deposit 1">Deposit 1</option>
+              <option value="Deposit 2">Deposit 2</option>
+              <option value="Full Payment">Paid in Full</option>
+            </select>
+          </div>
+          <div class="filter-select-wrap">
+            <select id="bookingsHandledBySelect" class="content-filter-select" onchange="bookingsHandledByFilter=this.value;renderBookingsList();">
+              <option value="all">Handled By</option>
+            </select>
+          </div>
+          <div class="filter-select-wrap">
+            <select id="bookingsPackageSelect" class="content-filter-select" onchange="bookingsPackageFilter=this.value;renderBookingsList();">
+              <option value="all">Package</option>
+            </select>
+          </div>
+        </div>
+        <div id="bookingsCount" style="font-size:12px;font-weight:700;color:var(--ink-soft);"></div>
+      </div>
+      <div id="bookingsList"></div>
+    </div>
+    <div id="panelHistory" style="display:none;">
+      <div class="list-card" style="margin-bottom:16px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+          <div class="filter-select-wrap">
+            <select id="historyMonthSelect" class="content-filter-select" onchange="historyMonthFilter=this.value;renderHistoryList();">
+              <option value="all">Month</option>
+            </select>
+          </div>
+          <div class="filter-select-wrap">
+            <select id="historyStageSelect" class="content-filter-select" onchange="historyStageFilter=this.value;renderHistoryList();">
+              <option value="All">Payment Stage</option>
+              <option value="No Deposit Yet">No Deposit Yet</option>
+              <option value="Deposit 1">Deposit 1</option>
+              <option value="Deposit 2">Deposit 2</option>
+              <option value="Full Payment">Paid in Full</option>
+            </select>
+          </div>
+          <div class="filter-select-wrap">
+            <select id="historyHandledBySelect" class="content-filter-select" onchange="historyHandledByFilter=this.value;renderHistoryList();">
+              <option value="all">Handled By</option>
+            </select>
+          </div>
+          <div class="filter-select-wrap">
+            <select id="historyPackageSelect" class="content-filter-select" onchange="historyPackageFilter=this.value;renderHistoryList();">
+              <option value="all">Package</option>
+            </select>
+          </div>
+        </div>
+        <div id="historyCount" style="font-size:12px;font-weight:700;color:var(--ink-soft);"></div>
+      </div>
+      <div id="historyListContainer"></div>
+    </div>
   </div>
 
   <div id="viewReport" class="view-content" style="display:none;">
-    <div id="reportContent"></div>
+    <div id="rfMonthWrap" style="position:relative;margin-bottom:12px;">
+      <div id="reportFilterChips" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+      <div id="rfMonthMenu" style="display:none;position:absolute;top:100%;left:0;z-index:200;background:var(--card);border-radius:var(--r-lg);box-shadow:0 8px 32px rgba(0,0,0,0.15);padding:8px;min-width:180px;margin-top:6px;"></div>
+    </div>
+    <div id="reportStats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;"></div>
+    <div id="reportListContainer"></div>
   </div>
 
   <div id="viewContent" class="view-content" style="display:none;">
-    <div id="contentViewInner"></div>
+    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+      <div class="cf-dropdown" id="cfMonthWrap" style="position:relative;">
+        <button class="filter-chip" onclick="cfToggle('cfMonthWrap')" style="display:inline-flex;align-items:center;gap:6px;">
+          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="1" y="2" width="12" height="11" rx="2"/><path d="M4 1v2M10 1v2M1 6h12"/></svg>
+          <span id="cfMonthLabel">All months</span>
+        </button>
+        <div class="cf-menu" id="cfMonthMenu" style="display:none;position:absolute;top:100%;left:0;z-index:200;background:var(--card);border-radius:var(--r-lg);box-shadow:0 8px 32px rgba(0,0,0,0.15);padding:8px;min-width:160px;margin-top:6px;"></div>
+      </div>
+      <div class="cf-dropdown" id="cfStatusWrap" style="position:relative;">
+        <button class="filter-chip" onclick="cfToggle('cfStatusWrap')" style="display:inline-flex;align-items:center;gap:6px;">
+          <span id="cfStatusLabel">All Status</span>
+        </button>
+        <div class="cf-menu" id="cfStatusMenu" style="display:none;position:absolute;top:100%;left:0;z-index:200;background:var(--card);border-radius:var(--r-lg);box-shadow:0 8px 32px rgba(0,0,0,0.15);padding:8px;min-width:180px;margin-top:6px;"></div>
+      </div>
+    </div>
+    <div id="contentAlertBanner" class="content-alert" style="display:none;margin-bottom:12px;"></div>
+    <div id="contentListContainer"></div>
   </div>
 
   <!-- Bottom Nav -->
@@ -1335,7 +1393,7 @@ function renderCalendar(){
 }
 
 function renderSummary(){
-  const list = document.getElementById('summaryList');
+  const list = document.getElementById('summaryList') || document.getElementById('summaryGrid');
   if(!list || !dataLoaded) return;
 
   const otherCycle = ['s7-day0','s7-day1','s7-day2','s7-day3','s7-day4'];
@@ -1476,6 +1534,20 @@ function getBookingsMonths(){
 
 /* ================= BOOKING HISTORY ================= */
 let historyMonthFilter = 'all';
+let historyStageFilter = 'All';
+let historyHandledByFilter = 'all';
+let historyPackageFilter = 'all';
+let currentBookingsTab = 'upcoming';
+
+function switchBookingsTab(tab){
+  currentBookingsTab = tab;
+  const isUpcoming = tab === 'upcoming';
+  document.getElementById('panelUpcoming').style.display = isUpcoming ? '' : 'none';
+  document.getElementById('panelHistory').style.display = isUpcoming ? 'none' : '';
+  document.getElementById('tabUpcoming').className = isUpcoming ? 'tab-toggle-btn' : 'tab-toggle-btn tab-toggle-inactive';
+  document.getElementById('tabHistory').className = isUpcoming ? 'tab-toggle-btn tab-toggle-inactive' : 'tab-toggle-btn';
+  if(!isUpcoming) renderHistoryList();
+}
 
 function openBookingHistory(){
   const overlay = document.createElement('div');
@@ -1540,13 +1612,17 @@ function onHistoryMonthChange(el){
 
 function renderHistoryList(){
   const container = document.getElementById('historyListContainer');
-  if(!container) return;
+  if(!container || !dataLoaded) return;
+  renderHistoryMonthOptions();
 
   let filtered = bookings.slice();
-  if(historyMonthFilter !== 'all'){
-    filtered = filtered.filter(b => b.date.slice(0,7) === historyMonthFilter);
-  }
+  if(historyMonthFilter !== 'all') filtered = filtered.filter(b => b.date.slice(0,7) === historyMonthFilter);
+  if(historyStageFilter !== 'All') filtered = filtered.filter(b => (b.depositStage||'No Deposit Yet') === historyStageFilter);
+  if(historyHandledByFilter !== 'all') filtered = filtered.filter(b => (b.handledBy||'Nataliadesiandra') === historyHandledByFilter);
+  if(historyPackageFilter !== 'all') filtered = filtered.filter(b => b.package === historyPackageFilter);
   filtered.sort((a,b) => b.date.localeCompare(a.date) || timeKey(a).localeCompare(timeKey(b)));
+  const hcEl = document.getElementById('historyCount');
+  if(hcEl) hcEl.textContent = filtered.length ? `${filtered.length} booking${filtered.length>1?'s':''}` : '';
 
   if(filtered.length === 0){
     container.innerHTML = `<div class="empty-hint" style="padding:30px 10px;text-align:center;">No bookings found.</div>`;
@@ -1644,30 +1720,6 @@ function openBookingDetailFromHistory(id){
 function renderBookingsMonthOptions(){
   const el = document.getElementById('bookingsMonthSelect');
   if(!el) return;
-  const months = getBookingsMonths();
-  const opts = ['<option value="all">All months</option>'].concat(
-    months.map(m => {
-      const [y, mm] = m.split('-').map(Number);
-      return `<option value="${m}">${MONTHS_ID[mm - 1]} ${y}</option>`;
-    })
-  );
-  el.innerHTML = opts.join('');
-  el.value = months.includes(bookingsMonthFilter) || bookingsMonthFilter === 'all' ? bookingsMonthFilter : 'all';
-}
-
-function onBookingsMonthChange(el){
-  bookingsMonthFilter = el.value;
-  const lbl = document.getElementById('bkfLblMonth');
-  if(lbl){
-    if(el.value==='all'){lbl.textContent='Month';}
-    else{const[y,mm]=el.value.split('-').map(Number);lbl.textContent=`${MONTHS_ID[mm-1]} ${y}`;}
-  }
-  renderBookingsList();
-}
-
-function renderBookingsMonthOptions(){
-  const el = document.getElementById('bookingsMonthSelect');
-  if(!el) return;
   const months = [...new Set(bookings.filter(b=>!b.cancelled&&!b.done).map(b=>b.date.slice(0,7)))].sort().reverse();
   el.innerHTML = `<option value="all">All months</option>` + months.map(m => {
     const [y, mm] = m.split('-').map(Number);
@@ -1679,6 +1731,28 @@ function renderBookingsMonthOptions(){
   if(lbl){
     if(bookingsMonthFilter==='all'){lbl.textContent='Month';}
     else{const[y,mm]=bookingsMonthFilter.split('-').map(Number);lbl.textContent=`${MONTHS_ID[mm-1]} ${y}`;}
+  }
+}
+
+function renderHistoryMonthOptions(){
+  const el = document.getElementById('historyMonthSelect');
+  if(!el) return;
+  const months = [...new Set(bookings.map(b=>b.date.slice(0,7)))].sort().reverse();
+  el.innerHTML = `<option value="all">Month</option>` + months.map(m => {
+    const [y, mm] = m.split('-').map(Number);
+    return `<option value="${m}" ${historyMonthFilter===m?'selected':''}>${MONTHS_ID[mm-1]} ${y}</option>`;
+  }).join('');
+  // Handled By
+  const hbEl = document.getElementById('historyHandledBySelect');
+  if(hbEl){
+    const vals = [...new Set(bookings.map(b=>(b.handledBy||'Nataliadesiandra').trim()))].sort();
+    hbEl.innerHTML = `<option value="all">Handled By</option>` + vals.map(v=>`<option value="${v}" ${historyHandledByFilter===v?'selected':''}>${v}</option>`).join('');
+  }
+  // Package
+  const pkgEl = document.getElementById('historyPackageSelect');
+  if(pkgEl){
+    const vals = [...new Set(bookings.map(b=>b.package).filter(Boolean))].sort();
+    pkgEl.innerHTML = `<option value="all">Package</option>` + vals.map(v=>{const p=PACKAGES[v]||PACKAGES.Others;return`<option value="${v}" ${historyPackageFilter===v?'selected':''}>${p.label}</option>`;}).join('');
   }
 }
 
@@ -1768,6 +1842,9 @@ function renderBookingsList(){
   }
 
   filtered.sort((a, b) => a.date.localeCompare(b.date) || timeKey(a).localeCompare(timeKey(b)) || a.clientName.localeCompare(b.clientName));
+
+  const countEl = document.getElementById('bookingsCount');
+  if(countEl) countEl.textContent = filtered.length ? `${filtered.length} booking${filtered.length>1?'s':''}` : '';
 
   if(filtered.length === 0){
     container.innerHTML = `<div class="empty-hint" style="padding:36px 10px;">No bookings found.</div>`;
