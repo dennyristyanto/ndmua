@@ -1745,7 +1745,7 @@ function onBookingsPackageChange(el){
 }
 
 function renderBookingsList(){
-  const container = document.getElementById('bookingsListContainer');
+  const container = document.getElementById('bookingsListContainer') || document.getElementById('bookingsList');
   if(!container || !dataLoaded) return;
   renderBookingsMonthOptions();
   renderFilterChips();
