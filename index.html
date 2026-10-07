@@ -805,45 +805,82 @@ html,body{background:#fffaf6}.app-shell{background:radial-gradient(ellipse at 10
 
 <!-- ═══ COMPREHENSIVE FIXES ═══ -->
 <style id="comprehensive-fixes">
-/* ─── FIX 1: Header + content — semua ukuran iPhone & iPad ─── */
-/* Header membutuhkan padding atas = safe-area-inset-top */
+
+/* ══════════════════════════════════════════════════════
+   FIX 1 — HEADER: padding safe-area + content clearance
+   iPhone notch/dynamic island safe-area-inset-top ~47–59px
+   Header min-height ~86px → total needed ~145px on iPhone
+   ══════════════════════════════════════════════════════ */
+
+/* Header itself must grow to accommodate status bar */
 .header {
   padding-top: max(env(safe-area-inset-top, 0px), 0px) !important;
+  min-height: calc(env(safe-area-inset-top, 0px) + 60px) !important;
 }
 
-/* Tinggi header "nyata" termasuk safe area */
+/* Content clears header + safe area */
 .view-content {
-  padding-top: calc(env(safe-area-inset-top, 0px) + 92px) !important;
-}
-@media (max-width: 767px) {
-  .view-content { padding-top: calc(env(safe-area-inset-top, 0px) + 90px) !important; }
-  .header { min-height: calc(env(safe-area-inset-top, 0px) + 60px) !important; }
-}
-@media (min-width: 768px) and (max-width: 1199px) {
-  /* iPad: sidebar ada, header hanya di kanan sidebar */
-  .view-content { padding-top: calc(env(safe-area-inset-top, 0px) + 96px) !important; }
-  .header { min-height: calc(env(safe-area-inset-top, 0px) + 64px) !important; }
-}
-@media (min-width: 1200px) {
-  .view-content { padding-top: calc(env(safe-area-inset-top, 0px) + 100px) !important; }
+  padding-top: calc(env(safe-area-inset-top, 0px) + 86px) !important;
 }
 
-/* ─── FIX 2: Bottom nav — lebih turun di iPhone ─── */
+/* iPhone portrait */
+@media (max-width: 767px) {
+  .header {
+    padding-top: max(env(safe-area-inset-top, 0px), 0px) !important;
+    min-height: calc(env(safe-area-inset-top, 0px) + 56px) !important;
+  }
+  .view-content {
+    padding-top: calc(env(safe-area-inset-top, 0px) + 82px) !important;
+  }
+}
+
+/* iPad (sidebar present, header only on right side — no notch usually) */
+@media (min-width: 768px) and (max-width: 1199px) {
+  .header {
+    padding-top: max(env(safe-area-inset-top, 0px), 0px) !important;
+    min-height: calc(env(safe-area-inset-top, 0px) + 64px) !important;
+  }
+  .view-content {
+    padding-top: calc(env(safe-area-inset-top, 0px) + 90px) !important;
+  }
+}
+
+/* Desktop */
+@media (min-width: 1200px) {
+  .view-content { padding-top: 110px !important; }
+}
+
+/* Modals/overlays: push down so close button clears header */
+@media (max-width: 767px) {
+  .preview-overlay,
+  .overlay {
+    padding-top: max(env(safe-area-inset-top, 0px), 16px) !important;
+  }
+  /* Booking preview modal: top offset */
+  .preview-modal {
+    margin-top: 0 !important;
+  }
+}
+
+
+/* ══════════════════════════════════════════════════════
+   FIX 2 — BOTTOM NAV: turunkan di iPhone
+   ══════════════════════════════════════════════════════ */
 @media (max-width: 767px) {
   .bottom-nav {
-    bottom: max(6px, env(safe-area-inset-bottom, 6px)) !important;
-    /* Turunkan posisi: tambah margin bawah ekstra */
-    transform: translateY(0);
+    bottom: max(8px, env(safe-area-inset-bottom, 8px)) !important;
+    min-height: 58px !important;
+    padding: 4px 6px !important;
   }
-  /* Kurangi ukuran nav sedikit agar tidak terlalu tinggi */
   .nav-btn span:last-child { font-size: 9px !important; }
-  .nav-icon-wrap { height: 25px !important; width: 36px !important; }
-  .bottom-nav { min-height: 60px !important; padding: 5px 6px !important; }
-  /* app-shell padding bawah disesuaikan */
-  .app-shell { padding-bottom: calc(max(6px, env(safe-area-inset-bottom, 6px)) + 64px) !important; }
+  .nav-icon-wrap { height: 24px !important; width: 34px !important; }
+  .app-shell { padding-bottom: calc(max(8px, env(safe-area-inset-bottom, 8px)) + 62px) !important; }
 }
 
-/* ─── FIX 3: Report — filter chips 1 baris ─── */
+
+/* ══════════════════════════════════════════════════════
+   FIX 3 — REPORT FILTER CHIPS: always 1 scrollable row
+   ══════════════════════════════════════════════════════ */
 #reportFilterChips {
   flex-wrap: nowrap !important;
   overflow-x: auto !important;
@@ -851,20 +888,22 @@ html,body{background:#fffaf6}.app-shell{background:radial-gradient(ellipse at 10
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
   gap: 7px !important;
-  padding: 2px 0 !important;
+  padding: 2px 0 4px !important;
 }
 #reportFilterChips::-webkit-scrollbar { display: none; }
 #reportFilterChips .filter-chip {
   flex-shrink: 0 !important;
   white-space: nowrap !important;
-  padding: 7px 11px !important;
-  font-size: 11px !important;
+  padding: 7px 12px !important;
+  font-size: 11.5px !important;
   min-height: 34px !important;
 }
 
-/* ─── FIX 4: Report — Revenue Breakdown & Package Sales responsif iPhone ─── */
+
+/* ══════════════════════════════════════════════════════
+   FIX 4 — REPORT CHARTS: font size iPhone
+   ══════════════════════════════════════════════════════ */
 @media (max-width: 767px) {
-  /* Chart legend font lebih kecil & rapi */
   .chart-legend-row {
     font-size: 11px !important;
     gap: 7px !important;
@@ -877,7 +916,6 @@ html,body{background:#fffaf6}.app-shell{background:radial-gradient(ellipse at 10
   .chart-title { font-size: 15px !important; }
   .chart-sub { font-size: 11px !important; margin: 3px 0 12px !important; }
   .financial-chart { gap: 10px !important; }
-  /* Package pie legend — 2 kolom */
   #reportPieCard .chart-legend,
   #packagePieCard .chart-legend {
     grid-template-columns: minmax(0,1fr) minmax(0,1fr) !important;
@@ -885,43 +923,69 @@ html,body{background:#fffaf6}.app-shell{background:radial-gradient(ellipse at 10
   }
   #reportPieCard .chart-legend-row,
   #packagePieCard .chart-legend-row {
-    font-size: 10px !important;
-    gap: 4px !important;
-    padding: 5px 0 !important;
+    font-size: 10px !important; gap: 4px !important; padding: 5px 0 !important;
   }
-  /* Finance rows lebih compact */
   .finance-row { font-size: 11px !important; padding: 8px 0 !important; gap: 8px !important; }
   .finance-total { font-size: 13px !important; }
   .finance-row b { font-size: 11px !important; }
 }
 
-/* ─── FIX 5: Net Revenue card — Rp. dan angka sebaris ─── */
-.stat-card-profit .stat-value {
-  font-size: clamp(18px, 3.2vw, 32px) !important;
+
+/* ══════════════════════════════════════════════════════
+   FIX 5 — STAT CARDS: semua nilai sama besar, 1 baris
+   Problem: "Rp." di baris sendiri karena font terlalu besar
+   Solution: semua stat-value pakai ukuran yang muat
+   ══════════════════════════════════════════════════════ */
+
+/* Semua stat cards: nilai selalu 1 baris */
+.stat-value {
   white-space: nowrap !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
-  line-height: 1.15 !important;
 }
+
+/* iPhone: font size disesuaikan agar muat 1 baris */
 @media (max-width: 767px) {
-  .stat-card-profit .stat-value {
-    font-size: clamp(15px, 4.5vw, 22px) !important;
+  /* Total Bookings & Net Revenue cards (2-kolom, lebar ~47vw) */
+  #reportStats .stat-card-bookings .stat-value,
+  #reportStats .stat-card-revenue .stat-value {
+    font-size: clamp(18px, 5.5vw, 26px) !important;
     white-space: nowrap !important;
   }
+  /* Profit card (full-width) */
+  #reportStats .stat-card-profit .stat-value {
+    font-size: clamp(20px, 5.5vw, 28px) !important;
+    white-space: nowrap !important;
+  }
+  /* Global fallback */
+  .stat-value {
+    font-size: clamp(16px, 5vw, 24px) !important;
+  }
+  /* Profit inner layout */
+  .stat-card-profit-inner { gap: 8px !important; }
   .stat-card-profit-text {
     flex-direction: column !important;
     align-items: flex-start !important;
-    gap: 4px !important;
+    gap: 2px !important;
   }
-  .stat-card-profit-inner {
-    gap: 8px !important;
-  }
-  .profit-emboss strong { font-size: 16px !important; }
+  .profit-emboss strong { font-size: 15px !important; }
   .profit-emboss span { font-size: 8px !important; }
 }
 @media (max-width: 380px) {
-  .stat-card-profit .stat-value { font-size: 14px !important; }
+  #reportStats .stat-card-bookings .stat-value,
+  #reportStats .stat-card-revenue .stat-value { font-size: 16px !important; }
+  #reportStats .stat-card-profit .stat-value { font-size: 18px !important; }
 }
+
+/* Force all stat-value white-space nowrap globally */
+.stat-card-bookings .stat-value,
+.stat-card-revenue .stat-value,
+.stat-card-profit .stat-value {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
 </style>
 </head>
 <body>
@@ -3342,15 +3406,25 @@ function openBookingConfirmation(bookingId){
  * (portrait iPhone share image — same as user sees in preview).
  * Returns a data URL (PNG).
  */
+/**
+ * Capture a DOM element as a share image.
+ * - Screenshots the element exactly as rendered (same as preview)
+ * - Scales to 1080px wide (crisp retina), keeping natural height
+ * - No padding/letterbox: image fills edge to edge
+ * Returns a PNG data URL.
+ */
 async function captureElementFitScreen(el, bgColor){
   bgColor = bgColor || '#ffffff';
-  // Use 3× scale for crisp retina output
-  const scale = 3;
+
   const rect = el.getBoundingClientRect();
   const elW = Math.round(rect.width);
   const elH = Math.round(rect.height);
 
-  // Screenshot the element at 3x
+  // Scale so output is exactly 1080px wide
+  const OUT_W = 1080;
+  const scale = OUT_W / elW;
+
+  // Screenshot at computed scale — output = 1080 × (elH * scale)
   const shot = await html2canvas(el, {
     scale: scale,
     useCORS: true,
@@ -3364,37 +3438,8 @@ async function captureElementFitScreen(el, bgColor){
     logging: false,
   });
 
-  // Target: 1080×1920 (9:16 portrait)
-  const OUT_W = 1080;
-  const OUT_H = 1920;
-  const PADDING = 60; // px padding on each side inside 1080
-
-  const final = document.createElement('canvas');
-  final.width  = OUT_W;
-  final.height = OUT_H;
-  const ctx = final.getContext('2d');
-
-  // Background
-  ctx.fillStyle = bgColor;
-  ctx.fillRect(0, 0, OUT_W, OUT_H);
-
-  // Fit shot into OUT_W - 2*PADDING  wide, max OUT_H - 2*PADDING tall
-  const availW = OUT_W - PADDING * 2;
-  const availH = OUT_H - PADDING * 2;
-  const imgW = shot.width;   // already scaled
-  const imgH = shot.height;
-  const ratioW = availW / imgW;
-  const ratioH = availH / imgH;
-  const ratio  = Math.min(ratioW, ratioH, 1); // never upscale beyond 1:1
-
-  const drawW = Math.round(imgW * ratio);
-  const drawH = Math.round(imgH * ratio);
-  const offX  = Math.round((OUT_W - drawW) / 2);
-  const offY  = Math.round((OUT_H - drawH) / 2);
-
-  ctx.drawImage(shot, offX, offY, drawW, drawH);
-
-  return final.toDataURL('image/png', 1.0);
+  // shot is already 1080 wide — return it directly
+  return shot.toDataURL('image/png', 1.0);
 }
 
 function showImageShareOverlay(dataUrl, fileName){
