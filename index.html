@@ -1012,7 +1012,7 @@ html,body{background:#fffaf6}.app-shell{background:radial-gradient(ellipse at 10
 @media(max-width:767px){.header{padding-top:calc(var(--device-safe-top) + 18px)!important;min-height:calc(var(--device-safe-top) + 88px)!important}.view-content{padding-top:calc(var(--device-safe-top) + 104px)!important}}
 @media(min-width:768px) and (max-width:1199px){.header{padding-top:calc(var(--device-safe-top) + 20px)!important;padding-bottom:16px!important;min-height:calc(var(--device-safe-top) + 92px)!important;box-sizing:border-box}.view-content{padding-top:calc(var(--device-safe-top) + 112px)!important}}
 #hairdoReminder{padding:16px 20px!important}#hairdoReminder h3{margin:0 0 3px!important;line-height:1.25}#hairdoReminder p{margin:0 0 7px!important;line-height:1.35}#hairdoReminder button{margin-top:5px!important;padding:10px 12px!important}
-</style></head>
+</style><style>.payment-editor{padding:16px;border:1px solid #ead2b6;border-radius:16px;background:linear-gradient(130deg,#ffecd5,#fff5e7);margin-bottom:20px}.payment-editor h3{margin:0 0 6px}.payment-editor p{font-size:12px;line-height:1.4;margin:0 0 12px}.payment-entry{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px 0;border-bottom:1px solid #ead2b6;margin-bottom:12px}.payment-entry label{font-size:12px;display:flex;flex-direction:column;gap:5px}.payment-entry input,.payment-entry select{width:100%;min-width:0;box-sizing:border-box;padding:10px;border:1px solid #d9bd9c;border-radius:10px;font:inherit}.payment-entry small{grid-column:1/-1;color:#896c55}.payment-entry button{align-self:end;min-height:40px}</style></head>
 <body>
 
 <!-- ═══════════════ LOGIN SCREEN ═══════════════ -->
@@ -3947,6 +3947,38 @@ function derivePhoneRest(phone){
   return p.startsWith('08') ? p.slice(2) : p;
 }
 
+
+function bookingPayments(b){
+ if(Array.isArray(b.payments))return b.payments.map(p=>({...p}));
+ const amount=b.depositStage==='Full Payment'?bookingTotalDue(b):Number(b.depositAmount)||0;
+ return amount>0?[{id:'legacy',date:'',type:b.depositStage==='Full Payment'?'Full Payment':'Deposit',amount,legacy:true}]:[];
+}
+function paymentRowHtml(p={}){
+ return `<div class="payment-entry" data-id="${escapeHtml(p.id||uid())}" data-legacy="${p.legacy?'true':'false'}">
+ <label>Date<input type="date" class="payment-date" value="${escapeHtml(p.date||'')}" ${p.legacy?'':'required'}></label>
+ <label>Type<select class="payment-type">${['Deposit','Balance Payment','Full Payment'].map(t=>`<option ${p.type===t?'selected':''}>${t}</option>`).join('')}</select></label>
+ <label>Amount (Rp)<input type="text" class="payment-amount" inputmode="numeric" value="${groupThousands(p.amount||'')}" required oninput="formatThousands(this)"></label>
+ <button type="button" class="btn btn-ghost-danger" onclick="this.closest('.payment-entry').remove()">Remove</button>
+ ${p.legacy?'<small>Previous payment — date not recorded. Fill in the actual date if known.</small>':''}</div>`;
+}
+function addPaymentEntry(){document.getElementById('paymentEntries').insertAdjacentHTML('beforeend',paymentRowHtml());}
+function readPaymentEntries(){
+ return [...document.querySelectorAll('#paymentEntries .payment-entry')].map(row=>{
+ const date=row.querySelector('.payment-date').value,amount=Number(row.querySelector('.payment-amount').value.replace(/[^0-9]/g,''));
+ const legacy=row.dataset.legacy==='true';
+ if(!Number.isFinite(amount)||amount<=0)throw new Error('Each payment amount must be greater than zero.');
+ if(!date&&!legacy)throw new Error('Please enter the actual payment date.');
+ return {id:row.dataset.id,date,type:row.querySelector('.payment-type').value,amount,legacy};
+ }).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+}
+function paymentHistoryHtml(b,large=false){
+ const payments=bookingPayments(b),paid=payments.reduce((sum,p)=>sum+Number(p.amount),0),balance=Math.max(bookingTotalDue(b)-paid,0);
+ return `<section style="margin:18px 0;padding:${large?28:14}px;border-radius:16px;background:linear-gradient(130deg,#ffe9ce,#fff0de);color:#624b3c;font-size:${large?24:12}px"><strong>Payment History</strong>
+ ${payments.length?payments.map(p=>`<div style="display:flex;justify-content:space-between;gap:14px;padding:10px 0;border-bottom:1px solid #e8cfb5"><span>${escapeHtml(p.date?formatDateLong(p.date):'Date not recorded')}<br><small>${escapeHtml(p.type)}</small></span><strong style="white-space:nowrap">${formatRupiah(p.amount)}</strong></div>`).join(''):'<p>No payments recorded.</p>'}
+ <div style="display:flex;justify-content:space-between;margin-top:12px"><span>Total Paid</span><strong>${formatRupiah(paid)}</strong></div>
+ <div style="display:flex;justify-content:space-between;margin-top:6px"><span>Balance Due</span><strong>${formatRupiah(balance)}</strong></div></section>`;
+}
+
 function openBookingForm(bookingId, presetDate, prefillData){
   const editing = bookingId ? bookings.find(b => b.id === bookingId) : null;
   let b = editing || {
@@ -4136,24 +4168,11 @@ function openBookingForm(bookingId, presetDate, prefillData){
               </div>
 
             <hr class="hr">
-            <div class="row2">
-              <div class="field">
-                <label>Deposit Amount</label>
-                <input type="text" inputmode="numeric" id="f_depositAmount" value="${groupThousands(b.depositAmount)}" placeholder="0" oninput="onDepositAmountInput(this)">
-              </div>
-              <div class="field">
-                <label>Payment Stage</label>
-                <select id="f_depositStage">${stageOptions}</select>
-              </div>
-            </div>
-
-            ${editing && editing.depositAmount > 0 ? `
-            <div class="field">
-              <label>Balance Payment</label>
-              <input type="text" inputmode="numeric" id="f_balancePayment" data-base-deposit="${editing.depositAmount}" data-total="${bookingTotalDue(editing)}" placeholder="0" oninput="formatThousands(this);onBalancePaymentInput(this);">
-              <div class="field-hint">Balance due: ${formatRupiah(Math.max(bookingTotalDue(editing) - (editing.depositAmount || 0), 0))}</div>
-            </div>
-            ` : ''}
+            <section class="payment-editor"><h3>Payment History</h3><p>Record each payment separately with its actual date. Payment status is calculated automatically.</p>
+            <div id="paymentEntries">${bookingPayments(b).map(paymentRowHtml).join('')}</div>
+            <button type="button" class="btn btn-ghost" onclick="addPaymentEntry()">+ Add Payment</button>
+            <input type="hidden" id="f_depositAmount" value="${Number(b.depositAmount)||0}"><input type="hidden" id="f_depositStage" value="${escapeHtml(b.depositStage||'')}">
+            </section>
 
             <div class="field">
               <label>Notes</label>
@@ -4253,6 +4272,12 @@ async function submitBookingForm(evt, editingId){
     internalNotes: document.getElementById('f_internalNotes').value.trim(),
   };
 
+  try { data.payments = readPaymentEntries(); } catch(error){showToast(error.message);return false;}
+  data.depositAmount = data.payments.reduce((sum,p)=>sum+p.amount,0);
+  const due = bookingTotalDue(data);
+  if(data.depositAmount > due){showToast('Total payments cannot exceed the booking total after discount.');return false;}
+  data.depositStage = data.depositAmount > 0 && data.depositAmount >= due ? 'Full Payment' : data.depositAmount > 0 ? 'Deposit 1' : '';
+
   const finalizeSave = async () => {
     try{
       if(editingId){
@@ -4289,7 +4314,7 @@ async function submitBookingForm(evt, editingId){
 
   /* ---- Payment amount validation ---- */
   const pax = Number(data.totalPax) >= 1 ? Number(data.totalPax) : 1;
-  const formTotalDue = ((data.price || 0) * pax) + (data.homeServiceFee || 0) + (data.transportFee || 0) + (data.othersFee || 0);
+  const formTotalDue = bookingTotalDue(data);
   const depositVal = data.depositAmount || 0;
   if(depositVal < 0){
     showToast('Payment amount cannot be negative.');
@@ -4475,6 +4500,7 @@ function openInvoice(bookingId, forcePelunasan){
               <span class="amount">${formatRupiah(isLunas ? totalDue : remaining)}</span>
             </div>
             
+            ${paymentHistoryHtml(b)}
             <div class="inv-bank">
               <div class="inv-bank-label">Payment Information</div>
               <div class="inv-bank-line">BCA Account Number: 861-004-6372</div>
@@ -4612,6 +4638,7 @@ async function buildInvoiceCanvas(bookingId, forcePelunasan){
         </div>
       </div>
 
+      ${paymentHistoryHtml(b,true)}
       <!-- Payment info -->
       <div style="background:#FFEFD8;background:linear-gradient(135deg,#FFEBD3,#FFF0DF);border:2px solid rgba(142,142,147,0.30);border-radius:22px;padding:24px 36px;">
         <div style="font-size:19px;font-weight:800;color:#8A6D56;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:14px;">Payment Information</div>
