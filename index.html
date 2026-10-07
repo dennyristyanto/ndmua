@@ -801,7 +801,129 @@ html,body{background:#fffaf6}.app-shell{background:radial-gradient(ellipse at 10
 #contentListContainer .content-date{font-size:11px}
 #contentListContainer .content-status-select{min-height:36px;height:36px;padding:6px 10px;border-radius:11px;font-size:12px!important}
 #contentListContainer .content-accent-bar{align-self:stretch;min-height:0}
-</style></head>
+</style>
+
+<!-- ═══ COMPREHENSIVE FIXES ═══ -->
+<style id="comprehensive-fixes">
+/* ─── FIX 1: Header + content — semua ukuran iPhone & iPad ─── */
+/* Header membutuhkan padding atas = safe-area-inset-top */
+.header {
+  padding-top: max(env(safe-area-inset-top, 0px), 0px) !important;
+}
+
+/* Tinggi header "nyata" termasuk safe area */
+.view-content {
+  padding-top: calc(env(safe-area-inset-top, 0px) + 92px) !important;
+}
+@media (max-width: 767px) {
+  .view-content { padding-top: calc(env(safe-area-inset-top, 0px) + 90px) !important; }
+  .header { min-height: calc(env(safe-area-inset-top, 0px) + 60px) !important; }
+}
+@media (min-width: 768px) and (max-width: 1199px) {
+  /* iPad: sidebar ada, header hanya di kanan sidebar */
+  .view-content { padding-top: calc(env(safe-area-inset-top, 0px) + 96px) !important; }
+  .header { min-height: calc(env(safe-area-inset-top, 0px) + 64px) !important; }
+}
+@media (min-width: 1200px) {
+  .view-content { padding-top: calc(env(safe-area-inset-top, 0px) + 100px) !important; }
+}
+
+/* ─── FIX 2: Bottom nav — lebih turun di iPhone ─── */
+@media (max-width: 767px) {
+  .bottom-nav {
+    bottom: max(6px, env(safe-area-inset-bottom, 6px)) !important;
+    /* Turunkan posisi: tambah margin bawah ekstra */
+    transform: translateY(0);
+  }
+  /* Kurangi ukuran nav sedikit agar tidak terlalu tinggi */
+  .nav-btn span:last-child { font-size: 9px !important; }
+  .nav-icon-wrap { height: 25px !important; width: 36px !important; }
+  .bottom-nav { min-height: 60px !important; padding: 5px 6px !important; }
+  /* app-shell padding bawah disesuaikan */
+  .app-shell { padding-bottom: calc(max(6px, env(safe-area-inset-bottom, 6px)) + 64px) !important; }
+}
+
+/* ─── FIX 3: Report — filter chips 1 baris ─── */
+#reportFilterChips {
+  flex-wrap: nowrap !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  gap: 7px !important;
+  padding: 2px 0 !important;
+}
+#reportFilterChips::-webkit-scrollbar { display: none; }
+#reportFilterChips .filter-chip {
+  flex-shrink: 0 !important;
+  white-space: nowrap !important;
+  padding: 7px 11px !important;
+  font-size: 11px !important;
+  min-height: 34px !important;
+}
+
+/* ─── FIX 4: Report — Revenue Breakdown & Package Sales responsif iPhone ─── */
+@media (max-width: 767px) {
+  /* Chart legend font lebih kecil & rapi */
+  .chart-legend-row {
+    font-size: 11px !important;
+    gap: 7px !important;
+    padding: 7px 0 !important;
+  }
+  .chart-legend-row span { font-size: 11px !important; }
+  .chart-legend-row small { font-size: 10px !important; }
+  .chart-legend-row b { font-size: 11px !important; white-space: nowrap !important; }
+  .chart-legend-row i { width: 8px !important; height: 8px !important; flex: none !important; }
+  .chart-title { font-size: 15px !important; }
+  .chart-sub { font-size: 11px !important; margin: 3px 0 12px !important; }
+  .financial-chart { gap: 10px !important; }
+  /* Package pie legend — 2 kolom */
+  #reportPieCard .chart-legend,
+  #packagePieCard .chart-legend {
+    grid-template-columns: minmax(0,1fr) minmax(0,1fr) !important;
+    gap: 5px 10px !important;
+  }
+  #reportPieCard .chart-legend-row,
+  #packagePieCard .chart-legend-row {
+    font-size: 10px !important;
+    gap: 4px !important;
+    padding: 5px 0 !important;
+  }
+  /* Finance rows lebih compact */
+  .finance-row { font-size: 11px !important; padding: 8px 0 !important; gap: 8px !important; }
+  .finance-total { font-size: 13px !important; }
+  .finance-row b { font-size: 11px !important; }
+}
+
+/* ─── FIX 5: Net Revenue card — Rp. dan angka sebaris ─── */
+.stat-card-profit .stat-value {
+  font-size: clamp(18px, 3.2vw, 32px) !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  line-height: 1.15 !important;
+}
+@media (max-width: 767px) {
+  .stat-card-profit .stat-value {
+    font-size: clamp(15px, 4.5vw, 22px) !important;
+    white-space: nowrap !important;
+  }
+  .stat-card-profit-text {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 4px !important;
+  }
+  .stat-card-profit-inner {
+    gap: 8px !important;
+  }
+  .profit-emboss strong { font-size: 16px !important; }
+  .profit-emboss span { font-size: 8px !important; }
+}
+@media (max-width: 380px) {
+  .stat-card-profit .stat-value { font-size: 14px !important; }
+}
+</style>
+</head>
 <body>
 
 <!-- ═══════════════ LOGIN SCREEN ═══════════════ -->
@@ -3215,6 +3337,66 @@ function openBookingConfirmation(bookingId){
   document.body.classList.add('preview-open');
 }
 
+/**
+ * Capture a DOM element and fit it into a 1080×1920 canvas
+ * (portrait iPhone share image — same as user sees in preview).
+ * Returns a data URL (PNG).
+ */
+async function captureElementFitScreen(el, bgColor){
+  bgColor = bgColor || '#ffffff';
+  // Use 3× scale for crisp retina output
+  const scale = 3;
+  const rect = el.getBoundingClientRect();
+  const elW = Math.round(rect.width);
+  const elH = Math.round(rect.height);
+
+  // Screenshot the element at 3x
+  const shot = await html2canvas(el, {
+    scale: scale,
+    useCORS: true,
+    backgroundColor: bgColor,
+    width: elW,
+    height: elH,
+    scrollX: -window.scrollX,
+    scrollY: -window.scrollY,
+    windowWidth: window.innerWidth,
+    windowHeight: window.innerHeight,
+    logging: false,
+  });
+
+  // Target: 1080×1920 (9:16 portrait)
+  const OUT_W = 1080;
+  const OUT_H = 1920;
+  const PADDING = 60; // px padding on each side inside 1080
+
+  const final = document.createElement('canvas');
+  final.width  = OUT_W;
+  final.height = OUT_H;
+  const ctx = final.getContext('2d');
+
+  // Background
+  ctx.fillStyle = bgColor;
+  ctx.fillRect(0, 0, OUT_W, OUT_H);
+
+  // Fit shot into OUT_W - 2*PADDING  wide, max OUT_H - 2*PADDING tall
+  const availW = OUT_W - PADDING * 2;
+  const availH = OUT_H - PADDING * 2;
+  const imgW = shot.width;   // already scaled
+  const imgH = shot.height;
+  const ratioW = availW / imgW;
+  const ratioH = availH / imgH;
+  const ratio  = Math.min(ratioW, ratioH, 1); // never upscale beyond 1:1
+
+  const drawW = Math.round(imgW * ratio);
+  const drawH = Math.round(imgH * ratio);
+  const offX  = Math.round((OUT_W - drawW) / 2);
+  const offY  = Math.round((OUT_H - drawH) / 2);
+
+  ctx.drawImage(shot, offX, offY, drawW, drawH);
+
+  return final.toDataURL('image/png', 1.0);
+}
+
 function showImageShareOverlay(dataUrl, fileName){
   const overlay = document.createElement('div');
   overlay.id = 'imgShareOverlay';
@@ -3260,24 +3442,12 @@ async function shareBcConf(bookingId){
     const safeName = clientName.replace(/\s+/g,'_');
     const fileName = `BookingConfirmation_${safeName}_${b.date}.png`;
 
-    // Try to capture the already-rendered bcConfSheet element (exactly what user sees)
+    // Capture rendered element exactly as shown
     const bcSheetEl = document.getElementById('bcConfSheet');
     let dataUrl;
     if(bcSheetEl){
-      const dpr = Math.min(window.devicePixelRatio || 1, 3);
-      const rect = bcSheetEl.getBoundingClientRect();
-      const canvas = await html2canvas(bcSheetEl, {
-        scale: dpr,
-        useCORS: true,
-        backgroundColor: '#FFF8F0',
-        width: rect.width,
-        height: rect.height,
-        scrollX: 0, scrollY: 0,
-        logging: false,
-      });
-      dataUrl = canvas.toDataURL('image/png', 1.0);
+      dataUrl = await captureElementFitScreen(bcSheetEl, '#FFF8F0');
     } else {
-      // Fallback: build from template
       dataUrl = await buildBcConfDataUrl(bookingId);
     }
 
@@ -4471,29 +4641,18 @@ async function shareInvoiceImage(bookingId, forcePelunasan){
     const safeName = clientName.replace(/\s+/g,'_');
     const fileName = `Invoice_${invNumber}_${safeName}_${b.date}.png`;
 
-    // Try to capture the already-rendered preview (invSheet) from the open modal
+    // Capture rendered preview exactly as shown, fitted to iPhone screen
     const invSheetEl = document.getElementById('invSheet');
-    let canvas;
+    let dataUrl;
     if(invSheetEl){
-      // Capture exactly what user sees in the preview
-      const dpr = Math.min(window.devicePixelRatio || 1, 3);
-      const rect = invSheetEl.getBoundingClientRect();
-      canvas = await html2canvas(invSheetEl, {
-        scale: dpr,
-        useCORS: true,
-        backgroundColor: '#ffffff',
-        width: rect.width,
-        height: rect.height,
-        scrollX: 0, scrollY: 0,
-        logging: false,
-      });
+      dataUrl = await captureElementFitScreen(invSheetEl, '#ffffff');
     } else {
-      // Fallback: build canvas from template
       const built = await buildInvoiceCanvas(bookingId, forcePelunasan);
-      canvas = built.canvas;
+      dataUrl = built.canvas.toDataURL('image/png', 1.0);
     }
 
-    const blob = await new Promise((res,rej) => canvas.toBlob(b => b ? res(b) : rej(new Error('toBlob failed')), 'image/png', 1.0));
+    const res = await fetch(dataUrl);
+    const blob = await res.blob();
     const file = new File([blob], fileName, { type: 'image/png' });
 
     if(navigator.share && navigator.canShare && navigator.canShare({ files:[file] })){
@@ -4503,8 +4662,6 @@ async function shareInvoiceImage(bookingId, forcePelunasan){
         files: [file],
       });
     } else {
-      // Fallback: show overlay or download
-      const dataUrl = canvas.toDataURL('image/png', 1.0);
       const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
       const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
       if(isIOS || isSafari){
