@@ -1012,7 +1012,7 @@ html,body{background:#fffaf6}.app-shell{background:radial-gradient(ellipse at 10
 @media(max-width:767px){.header{padding-top:calc(var(--device-safe-top) + 18px)!important;min-height:calc(var(--device-safe-top) + 88px)!important}.view-content{padding-top:calc(var(--device-safe-top) + 104px)!important}}
 @media(min-width:768px) and (max-width:1199px){.header{padding-top:calc(var(--device-safe-top) + 20px)!important;padding-bottom:16px!important;min-height:calc(var(--device-safe-top) + 92px)!important;box-sizing:border-box}.view-content{padding-top:calc(var(--device-safe-top) + 112px)!important}}
 #hairdoReminder{padding:16px 20px!important}#hairdoReminder h3{margin:0 0 3px!important;line-height:1.25}#hairdoReminder p{margin:0 0 7px!important;line-height:1.35}#hairdoReminder button{margin-top:5px!important;padding:10px 12px!important}
-</style><style>.payment-editor{padding:16px;border:1px solid #ead2b6;border-radius:16px;background:linear-gradient(130deg,#ffecd5,#fff5e7);margin-bottom:20px}.payment-editor h3{margin:0 0 6px}.payment-editor p{font-size:12px;line-height:1.4;margin:0 0 12px}.payment-entry{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px 0;border-bottom:1px solid #ead2b6;margin-bottom:12px}.payment-entry label{font-size:12px;display:flex;flex-direction:column;gap:5px}.payment-entry input,.payment-entry select{width:100%;min-width:0;box-sizing:border-box;padding:10px;border:1px solid #d9bd9c;border-radius:10px;font:inherit}.payment-entry small{grid-column:1/-1;color:#896c55}.payment-entry button{align-self:end;min-height:40px}</style></head>
+</style><style>.payment-editor{padding:16px;border:1px solid #ead2b6;border-radius:16px;background:linear-gradient(130deg,#ffecd5,#fff5e7);margin-bottom:20px}.payment-editor h3{margin:0 0 6px}.payment-editor p{font-size:12px;line-height:1.4;margin:0 0 12px}.payment-entry{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px 0;border-bottom:1px solid #ead2b6;margin-bottom:12px}.payment-entry label{font-size:12px;display:flex;flex-direction:column;gap:5px}.payment-entry input,.payment-entry select{width:100%;min-width:0;box-sizing:border-box;padding:10px;border:1px solid #d9bd9c;border-radius:10px;font:inherit}.payment-entry small{grid-column:1/-1;color:#896c55}.payment-entry button{align-self:end;min-height:40px}</style><style>#invSheet .invoice-balance-card,#invSheet .invoice-balance-card .label,#invSheet .invoice-balance-card .amount{color:#802c43!important}</style><style>#invSheet .inv-total:not(.invoice-balance-card){background:#ccebdc!important;background-image:linear-gradient(120deg,#c3e7d5,#e0f2e6)!important;border-color:#b7dac6!important;color:#35664f!important}#invSheet .inv-total:not(.invoice-balance-card) .label,#invSheet .inv-total:not(.invoice-balance-card) .amount{color:#35664f!important}</style></head>
 <body>
 
 <!-- ═══════════════ LOGIN SCREEN ═══════════════ -->
@@ -3158,7 +3158,8 @@ function openBookingPreview(bookingId, source){
   if(others > 0) rows.push(['Others', formatRupiah(others)]);
   rows.push(
     ['Total', formatRupiah(total)],
-    [`Deposit (${b.depositStage || 'No Deposit Yet'})`, b.depositAmount ? formatRupiah(b.depositAmount) : 'Rp0'],
+    ...bookingPayments(b).sort((a,b)=>(a.date||'').localeCompare(b.date||'')).map(p=>[`${/^deposit/i.test(p.type)?'Deposit':p.type} - ${p.date?new Date(p.date+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'Date not recorded'}`,formatRupiah(p.amount)]),
+    ['Total Paid',formatRupiah(bookingPayments(b).reduce((sum,p)=>sum+Number(p.amount),0))],
     ['Balance Due', formatRupiah(remaining)],
     ['Note', b.note || '-'],
   );
@@ -3971,12 +3972,19 @@ function readPaymentEntries(){
  return {id:row.dataset.id,date,type:row.querySelector('.payment-type').value,amount,legacy};
  }).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
 }
+function invoiceBalanceCardHtml(b,large=false){
+ const paid=bookingPayments(b).reduce((sum,p)=>sum+Number(p.amount),0);
+ const balance=Math.max(bookingTotalDue(b)-paid,0);
+ if(!large)return `<div class="inv-total invoice-balance-card"><span class="label">Balance Due</span><span class="amount">${formatRupiah(balance)}</span></div>`;
+ return `<div class="invoice-balance-card" style="display:flex;justify-content:space-between;align-items:center;gap:16px;margin-top:${large?26:18}px;padding:${large?'28px 36px':'16px 18px'};border-radius:${large?22:16}px;background:#ffe3cf;background:linear-gradient(120deg,#ffdfb4,#ffeacd);color:#802c43;border:1px solid #e9c4b6;box-shadow:inset 0 1px 0 #fff3;"><span style="font-size:${large?28:13}px;font-weight:700;color:#802c43">Balance Due</span><strong style="font-size:${large?34:20}px;white-space:nowrap;color:#802c43">${formatRupiah(balance)}</strong></div>`;
+}
+
 function paymentHistoryHtml(b,large=false){
  const payments=bookingPayments(b),paid=payments.reduce((sum,p)=>sum+Number(p.amount),0),balance=Math.max(bookingTotalDue(b)-paid,0);
  return `<section style="margin:18px 0;padding:${large?28:14}px;border-radius:16px;background:linear-gradient(130deg,#ffe9ce,#fff0de);color:#624b3c;font-size:${large?24:12}px"><strong>Payment History</strong>
- ${payments.length?payments.map(p=>`<div style="display:flex;justify-content:space-between;gap:14px;padding:10px 0;border-bottom:1px solid #e8cfb5"><span>${escapeHtml(p.date?formatDateLong(p.date):'Date not recorded')}<br><small>${escapeHtml(p.type)}</small></span><strong style="white-space:nowrap">${formatRupiah(p.amount)}</strong></div>`).join(''):'<p>No payments recorded.</p>'}
+ ${payments.length?payments.map(p=>`<div style="display:flex;justify-content:space-between;gap:14px;padding:10px 0;border-bottom:1px solid #e8cfb5"><span>${escapeHtml(p.date?new Date(p.date+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'Date not recorded')} - ${escapeHtml(/^deposit/i.test(p.type)?'Deposit':p.type)}</span><strong style="white-space:nowrap">${formatRupiah(p.amount)}</strong></div>`).join(''):'<p>No payments recorded.</p>'}
  <div style="display:flex;justify-content:space-between;margin-top:12px"><span>Total Paid</span><strong>${formatRupiah(paid)}</strong></div>
- <div style="display:flex;justify-content:space-between;margin-top:6px"><span>Balance Due</span><strong>${formatRupiah(balance)}</strong></div></section>`;
+ </section>`;
 }
 
 function openBookingForm(bookingId, presetDate, prefillData){
@@ -4444,7 +4452,7 @@ function openInvoice(bookingId, forcePelunasan){
     remaining = Math.max(totalDue - b.depositAmount, 0);
     statusLabel = `${b.depositStage} received`;
     paidRow = `
-      <tr><td>Booking Deposit (${b.depositStage})</td><td class="r">-${formatRupiah(b.depositAmount)}</td></tr>
+      <tr><td>Deposit</td><td class="r">-${formatRupiah(b.depositAmount)}</td></tr>
     `;
   }
 
@@ -4489,18 +4497,18 @@ function openInvoice(bookingId, forcePelunasan){
               Event Date: ${formatDateLong(b.date)}${b.time ? ', at ' + escapeHtml(formatTimeRange(b)) : ''}
             </div>
 
-            <table class="inv-table">
+            <div class="inv-block-label" style="margin-top:20px">Service Details</div><table class="inv-table">
               <tr><td>${pkg.label}${(Number(b.totalPax)||1) > 1 ? ` × ${b.totalPax} pax` : ''}</td><td class="r">${formatRupiah(bookingBasePrice(b))}</td></tr>
               ${extraRows}
-              ${paidRow}
             </table>
 
             <div class="inv-total">
-              <span class="label">${isLunas ? 'Total Paid' : (remaining === 0 ? 'Total (Paid in Full)' : 'Remaining Balance')}</span>
-              <span class="amount">${formatRupiah(isLunas ? totalDue : remaining)}</span>
+              <span class="label">Total Service Cost</span>
+              <span class="amount">${formatRupiah(totalDue)}</span>
             </div>
             
             ${paymentHistoryHtml(b)}
+            ${invoiceBalanceCardHtml(b)}
             <div class="inv-bank">
               <div class="inv-bank-label">Payment Information</div>
               <div class="inv-bank-line">BCA Account Number: 861-004-6372</div>
@@ -4509,6 +4517,7 @@ function openInvoice(bookingId, forcePelunasan){
             ${b.note ? `<div class="inv-note" style="text-align:left;font-style:italic;">Note: ${escapeHtml(b.note)}</div>` : ''}
             <div class="inv-note" style="margin-top:16px;">${isLunas ? 'All payments received are final and non-refundable.' : 'Full payment is due 3 days before the event. The deposit is non-refundable.'}</div>
             <div class="inv-note">Thank you for trusting us with your special moment.</div>
+
           </div>
 
           <div style="display:flex;gap:8px;margin-top:14px;">
@@ -4562,9 +4571,6 @@ async function buildInvoiceCanvas(bookingId, forcePelunasan){
     others > 0 ? `<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(142,142,147,0.2);">
       <span style="font-size:26px;color:#8A6D56;">Others</span>
       <span style="font-size:26px;color:#1C1C1E;white-space:nowrap;">${formatRupiah(others)}</span></div>` : '',
-    depositLabel ? `<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(142,142,147,0.2);">
-      <span style="font-size:26px;color:#8A6D56;">${escapeHtml(depositLabel)}</span>
-      <span style="font-size:26px;color:#1C1C1E;white-space:nowrap;">${escapeHtml(depositValue)}</span></div>` : '',
   ].join('');
 
   const tpl = document.createElement('div');
@@ -4616,7 +4622,7 @@ async function buildInvoiceCanvas(bookingId, forcePelunasan){
 
       <!-- Line items -->
       <div style="background:#FFEBD3;border:2px solid rgba(142,142,147,0.38);border-radius:22px;padding:28px 36px;">
-        <!-- Package -->
+        <div style="font-size:22px;font-weight:700;color:#8A6D56;margin-bottom:18px">Service Details</div><!-- Package -->
         <div style="display:flex;justify-content:space-between;align-items:baseline;padding:0 0 14px;border-bottom:1px solid rgba(142,142,147,0.28);">
           <span style="font-size:28px;font-weight:600;color:#1C1C1E;">${escapeHtml(pkg.label)}${escapeHtml(paxNote)}</span>
           <span style="font-size:28px;font-weight:700;color:#1C1C1E;white-space:nowrap;padding-left:16px;">${formatRupiah(bookingBasePrice(b))}</span>
@@ -4625,20 +4631,15 @@ async function buildInvoiceCanvas(bookingId, forcePelunasan){
         <!-- Divider -->
         <div style="height:2px;background:rgba(60,30,10,0.15);margin:14px 0;"></div>
         <!-- Total due -->
-        <div style="display:flex;justify-content:space-between;align-items:baseline;padding:4px 0;">
-          <span style="font-size:28px;font-weight:700;color:#1C1C1E;">Total</span>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;padding:24px 28px;border-radius:22px;background:#ccebdc;background:linear-gradient(120deg,#c3e7d5,#e0f2e6);">
+          <span style="font-size:28px;font-weight:700;color:#35664f;">Total Service Cost</span>
           <span style="font-size:28px;font-weight:800;color:#1C1C1E;white-space:nowrap;">${formatRupiah(totalDue)}</span>
         </div>
-        <!-- Divider -->
-        <div style="height:2px;background:rgba(142,142,147,0.4);margin:14px 0;"></div>
-        <!-- Remaining / Paid -->
-        <div style="display:flex;justify-content:space-between;align-items:baseline;padding:4px 0;">
-          <span style="font-size:32px;font-weight:800;color:${isLunas ? '#1C1C1E' : '#B66327'};">${isLunas ? 'PAID IN FULL' : 'REMAINING BALANCE'}</span>
-          <span style="font-size:34px;font-weight:800;color:${isLunas ? '#1C1C1E' : '#B66327'};white-space:nowrap;">${formatRupiah(isLunas ? totalDue : remaining)}</span>
-        </div>
+
       </div>
 
       ${paymentHistoryHtml(b,true)}
+      ${invoiceBalanceCardHtml(b,true)}
       <!-- Payment info -->
       <div style="background:#FFEFD8;background:linear-gradient(135deg,#FFEBD3,#FFF0DF);border:2px solid rgba(142,142,147,0.30);border-radius:22px;padding:24px 36px;">
         <div style="font-size:19px;font-weight:800;color:#8A6D56;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:14px;">Payment Information</div>
@@ -4656,6 +4657,7 @@ async function buildInvoiceCanvas(bookingId, forcePelunasan){
         <div style="font-size:22px;color:#8A6D56;font-style:italic;margin-bottom:8px;">${isLunas ? 'All payments received are final and non-refundable.' : 'Full payment is due 3 days before the event. The deposit is non-refundable.'}</div>
         <div style="font-size:28px;font-weight:700;color:#1C1C1E;">Thank you for trusting us with your special moment. ✨</div>
       </div>
+
     </div>
   `;
   document.body.appendChild(tpl);
