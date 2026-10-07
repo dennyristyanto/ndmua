@@ -987,6 +987,21 @@ html,body{background:#fffaf6}.app-shell{background:radial-gradient(ellipse at 10
 }
 
 </style>
+<style id="iphone-safe-layout">
+:root{--device-safe-top:env(safe-area-inset-top,0px);--device-safe-bottom:env(safe-area-inset-bottom,0px)}
+@media(max-width:767px){
+ .header{box-sizing:border-box;height:auto!important;min-height:calc(var(--device-safe-top) + 82px)!important;padding:calc(var(--device-safe-top) + 12px) 14px 12px!important}
+ .view-content{padding-top:calc(var(--device-safe-top) + 98px)!important}
+ .preview-overlay,.overlay{box-sizing:border-box;height:100dvh!important;padding:calc(var(--device-safe-top) + 8px) 10px calc(var(--device-safe-bottom) + 8px)!important;align-items:flex-start!important;overflow:hidden!important}
+ .preview-overlay .preview-modal,.overlay .modal{box-sizing:border-box;margin:0!important;max-height:100%!important;display:flex;flex-direction:column;overflow:hidden}
+ #previewOverlay .preview-modal{height:100%!important;width:100%!important;max-width:100%!important}
+ .preview-modal-head,.modal-head{flex-shrink:0}
+ .preview-modal-body,.modal-body{min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1}
+ #reportStats .stat-card{min-width:0}
+ #reportStats .stat-card-revenue .stat-value,#reportStats .stat-card-profit .stat-value{white-space:nowrap!important;overflow-wrap:normal!important;word-break:normal!important;text-overflow:clip!important;max-width:100%;font-variant-numeric:tabular-nums}
+ #reportStats .stat-card-revenue .stat-value{font-size:clamp(15px,4.1vw,25px)!important;letter-spacing:-.6px}
+}
+</style>
 </head>
 <body>
 
@@ -1704,7 +1719,7 @@ function renderCalendar(){
 
 function getMissingHairdoBookings(now = new Date()){
   const start = toDateStr(now.getFullYear(), now.getMonth(), now.getDate());
-  const endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate()+3);
+  const endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate()+7);
   const end = toDateStr(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
   return bookings.filter(b => !b.cancelled && !b.done && b.date >= start && b.date <= end && !String(b.hairdo || '').trim())
     .sort((a,b) => a.date.localeCompare(b.date) || timeKey(a).localeCompare(timeKey(b)));
@@ -1716,7 +1731,7 @@ function renderHairdoReminder(){
   const missing = getMissingHairdoBookings();
   if(!missing.length){ if(card) card.remove(); return; }
   if(!card){ card = document.createElement('section'); card.id = 'hairdoReminder'; card.setAttribute('role','status'); home.prepend(card); }
-  card.innerHTML = `<h3>Hairdo not assigned · ${missing.length} booking</h3><p>Please assign a hairdo artist for bookings within the next 3 days, including today.</p>` + missing.map(b => `<button type="button" data-booking-id="${escapeHtml(b.id)}"><span><strong>${escapeHtml(b.clientName)}</strong><small>${escapeHtml(formatDateLong(b.date))} · ${escapeHtml(formatTimeRange(b) || 'All Day')}</small></span><span>Assign hairdo →</span></button>`).join('');
+  card.innerHTML = `<h3>Hairdo not assigned · ${missing.length} booking</h3><p>Please assign a hairdo artist for bookings within the next 7 days, including today.</p>` + missing.map(b => `<button type="button" data-booking-id="${escapeHtml(b.id)}"><span><strong>${escapeHtml(b.clientName)}</strong><small>${escapeHtml(formatDateLong(b.date))} · ${escapeHtml(formatTimeRange(b) || 'All Day')}</small></span><span>Assign hairdo →</span></button>`).join('');
   card.querySelectorAll('button').forEach(button => button.addEventListener('click', () => openBookingForm(button.dataset.bookingId)));
 }
 
@@ -2466,7 +2481,7 @@ function renderReport(){
 
 let _pieChartInstance = null;
 
-function solidPie3D(parts, label){
+function solidPie3D(parts, label, valueMode = 'percent'){
   const total=parts.reduce((sum,p)=>sum+p[1],0);if(!total)return '';
   const cx=170,cy=108,rx=148,ry=88,depth=42;
   let angle=-Math.PI/2;
@@ -2480,9 +2495,19 @@ function solidPie3D(parts, label){
   }
   const shade=(hex,n)=>'#'+hex.slice(1).match(/../g).map(c=>Math.round(parseInt(c,16)*n).toString(16).padStart(2,'0')).join('');
   let sides='';for(let y=depth;y>0;y-=1){sides+=wedges.map(w=>`<path transform="${wedgeTransform(w)}" d="${path(w,y)}" stroke="#756e78" stroke-opacity=".2" stroke-width=".35" fill="${shade(w.color,.78+(depth-y)/depth*.12)}"/>`).join('');}
+  const outside=[];
+  const labels=wedges.map(w=>{
+    const mid=(w.start+w.end)/2, fraction=w.value/total;
+    const text=valueMode==='pax'?`${w.value} pax`:`${(fraction*100).toFixed(1)}%`;
+    if(fraction<.045){outside.push({w,mid,text,right:Math.cos(mid)>=0,y:cy+ry*Math.sin(mid)});return '';}
+    const r=wedges.length===1?0:.64;
+    return `<text x="${cx+rx*r*Math.cos(mid)}" y="${cy+ry*r*Math.sin(mid)}" text-anchor="middle" dominant-baseline="middle" fill="#263d48" font-size="11" font-weight="750" stroke="#fff" stroke-opacity=".65" stroke-width="2" paint-order="stroke" pointer-events="none">${text}</text>`;
+  }).join('');
+  for(const right of [false,true]){let last=-10;outside.filter(d=>d.right===right).sort((a,b)=>a.y-b.y).forEach(d=>{d.y=Math.max(d.y,last+16);last=d.y;});}
+  const callouts=outside.map(d=>{const edgeX=cx+rx*Math.cos(d.mid),edgeY=cy+ry*Math.sin(d.mid),x=d.right?324:16;return `<path d="M${edgeX},${edgeY} L${d.right?318:22},${d.y} L${x},${d.y}" fill="none" stroke="#7e929a" stroke-width="1"/><text x="${x}" y="${d.y-5}" text-anchor="${d.right?'end':'start'}" fill="#263d48" font-size="10" font-weight="700" stroke="#fff8f0" stroke-width="2" paint-order="stroke">${d.text}</text>`;}).join('');
   const lightId='pie-light-'+(++solidPie3D.serial);
   const tops=wedges.map(w=>`<path transform="${wedgeTransform(w)}" d="${path(w,0)}" fill="${w.color}" stroke="#f8f1ec" stroke-opacity=".7" stroke-width=".9" stroke-linejoin="round"><title>${escapeHtml(w.name)}: ${(w.value/total*100).toFixed(1)}%</title></path>`).join('');
-  return `<svg class="solid-pie" viewBox="0 0 340 260" role="img" aria-label="${escapeHtml(label)}"><ellipse cx="170" cy="153" rx="146" ry="78" fill="#34283a" opacity=".10"/><defs><radialGradient id="${lightId}" cx="32%" cy="15%" r="90%"><stop offset="0" stop-color="white" stop-opacity=".48"/><stop offset=".42" stop-color="white" stop-opacity=".08"/><stop offset="1" stop-color="#102036" stop-opacity=".20"/></radialGradient></defs>${sides}${tops}${wedges.map(w=>`<path transform="${wedgeTransform(w)}" d="${path(w,0)}" fill="url(#${lightId})" pointer-events="none"/>`).join('')}</svg>`;
+  return `<svg class="solid-pie" viewBox="0 0 340 260" role="img" aria-label="${escapeHtml(label)}"><ellipse cx="170" cy="153" rx="146" ry="78" fill="#34283a" opacity=".10"/><defs><radialGradient id="${lightId}" cx="32%" cy="15%" r="90%"><stop offset="0" stop-color="white" stop-opacity=".48"/><stop offset=".42" stop-color="white" stop-opacity=".08"/><stop offset="1" stop-color="#102036" stop-opacity=".20"/></radialGradient></defs>${sides}${tops}${wedges.map(w=>`<path transform="${wedgeTransform(w)}" d="${path(w,0)}" fill="url(#${lightId})" pointer-events="none"/>`).join('')}${labels}${callouts}</svg>`;
 }
 
 solidPie3D.serial=0;
@@ -2506,7 +2531,7 @@ function renderPieChart(filtered){
   host.innerHTML=`<div class="chart-title">Revenue Breakdown</div><p class="chart-sub">Net revenue allocation after discounts</p>
     ${fin.isCancelledView ? '<div class="empty-hint">Grafik alokasi tidak tersedia untuk booking dibatalkan.</div>' : total<=0 ? '<div class="empty-hint">Belum ada pendapatan atau biaya untuk filter ini.</div>' : `
     <div class="financial-chart"><div class="donut-wrap">${solidPie3D(parts,'Komposisi biaya dan profit')}</div>
-    <div class="chart-legend">${parts.map(([label,value,color])=>`<div class="chart-legend-row"><i style="background:${color}"></i><span>${label}</span><b>${(value/total*100).toFixed(1)}%</b></div>`).join('')}</div></div>
+    <div class="chart-legend">${parts.map(([label,value,color])=>`<div class="chart-legend-row"><i style="background:${color}"></i><span>${label}</span></div>`).join('')}</div></div>
     ${fin.profit<0?`<div class="finance-note">Rugi ${formatRupiah(-fin.profit)}. Diagram menampilkan komposisi biaya; nilai rugi tidak digambar sebagai bagian negatif.</div>`:''}`}`;
 }
 
@@ -2543,7 +2568,7 @@ function renderPackagePieChart(filtered){
   const colors=['#79B5E1','#E8A0B5','#AE9AD8','#EBC27B','#86C9CD','#91CBA7','#E8A58C','#C49BD4','#7EBDB2','#E4A0A0','#9DAAE0','#BAC68C'];
   let offset=0;
   const arcs=entries.map(([name,n],i)=>{const pct=n/total*100;const arc=`<circle cx="100" cy="100" r="76" fill="none" stroke="${colors[i%colors.length]}" stroke-width="22" pathLength="100" stroke-dasharray="${pct} ${100-pct}" stroke-dashoffset="${-offset}" transform="rotate(-90 100 100)"><title>${escapeHtml(name)}: ${n} pax (${pct.toFixed(1)}%)</title></circle>`;offset+=pct;return arc}).join('');
-  host.innerHTML=`<div class="chart-title">Package Sales</div><p class="chart-sub">Package sales by pax · Selected report filters · Excludes cancellations</p>${total?`<div class="financial-chart"><div class="donut-wrap">${solidPie3D(entries.map(([name,n],i)=>[name,n,colors[i%colors.length]]),'Penjualan paket berdasarkan pax')}<div class="donut-center"><span>Total terjual</span><strong>${total} pax</strong></div></div><div class="chart-legend">${entries.map(([name,n],i)=>`<div class="chart-legend-row"><i style="background:${colors[i%colors.length]}"></i><span>${escapeHtml(name)} (${(n/total*100).toFixed(1)}%)</span><b>${n} pax</b></div>`).join('')}</div></div>`:'<div class="empty-hint">Belum ada penjualan paket untuk filter ini.</div>'}`;
+  host.innerHTML=`<div class="chart-title">Package Sales</div><p class="chart-sub">Package sales by pax · Selected report filters · Excludes cancellations</p>${total?`<div class="financial-chart"><div class="donut-wrap">${solidPie3D(entries.map(([name,n],i)=>[name,n,colors[i%colors.length]]),'Penjualan paket berdasarkan pax','pax')}<div class="donut-center"><span>Total terjual</span><strong>${total} pax</strong></div></div><div class="chart-legend">${entries.map(([name,n],i)=>`<div class="chart-legend-row"><i style="background:${colors[i%colors.length]}"></i><span>${escapeHtml(name)} (${(n/total*100).toFixed(1)}%)</span></div>`).join('')}</div></div>`:'<div class="empty-hint">Belum ada penjualan paket untuk filter ini.</div>'}`;
 }
 
 function exportReportToExcel(){
@@ -5117,5 +5142,26 @@ if(!inlineHandlersWork){
 // which then calls loadBookings internally
 initAuth();
 </script>
+
+<script>
+// Size monetary values to their actual available width, including after report filters change.
+(function(){
+ const ua=navigator.userAgent;
+ if(/iPhone/.test(ua) && (navigator.standalone || matchMedia('(display-mode: standalone)').matches)){
+  const probe=document.createElement('div');probe.style.paddingTop='env(safe-area-inset-top,0px)';document.body.appendChild(probe);
+  if(parseFloat(getComputedStyle(probe).paddingTop)<1)document.documentElement.style.setProperty('--device-safe-top','59px');probe.remove();
+ }
+ let pending=false;
+ function fit(){pending=false;document.querySelectorAll('#reportStats .stat-card-revenue .stat-value,#reportStats .stat-card-profit .stat-value').forEach(el=>{
+  el.style.removeProperty('font-size');if(!el.clientWidth)return;
+  let size=parseFloat(getComputedStyle(el).fontSize);
+  while(el.scrollWidth>el.clientWidth+1 && size>10){size-=.5;el.style.setProperty('font-size',size+'px','important');}
+ });}
+ function schedule(){if(!pending){pending=true;requestAnimationFrame(fit);}}
+ const stats=document.getElementById('reportStats');if(stats){new MutationObserver(schedule).observe(stats,{childList:true,subtree:true,characterData:true});if(window.ResizeObserver)new ResizeObserver(schedule).observe(stats);}
+ window.addEventListener('resize',schedule);window.addEventListener('orientationchange',schedule);if(document.fonts)document.fonts.ready.then(schedule);schedule();
+})();
+</script>
+
 </body>
 </html>
