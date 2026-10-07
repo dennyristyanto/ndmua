@@ -1002,7 +1002,14 @@ html,body{background:#fffaf6}.app-shell{background:radial-gradient(ellipse at 10
  #reportStats .stat-card-revenue .stat-value{font-size:clamp(15px,4.1vw,25px)!important;letter-spacing:-.6px}
 }
 </style>
-</head>
+<style>#packagePieCard .chart-legend-row{align-items:center!important}#packagePieCard .chart-legend-row i{align-self:center!important;margin:0!important;flex-shrink:0}
+#invSheet{background:#fff2e5!important;background-image:linear-gradient(135deg,#fff2e5,#f5eaf0)!important;border-color:#ead5c3!important;box-shadow:none!important}
+#invSheet .inv-meta,#invSheet .inv-bank{background:#ffefd8!important;background-image:linear-gradient(130deg,#ffebce,#fff1df)!important;background-clip:border-box!important;border-color:#efd8b9!important;box-shadow:none!important}
+#invSheet .inv-total{background:#ffdfb4!important;background-image:linear-gradient(120deg,#ffdfb4,#ffeacd)!important;background-clip:border-box!important;border-color:#f1cea0!important;box-shadow:none!important}
+@media(max-width:767px){.header{padding-top:calc(var(--device-safe-top) + 28px)!important;min-height:calc(var(--device-safe-top) + 98px)!important}.view-content{padding-top:calc(var(--device-safe-top) + 114px)!important}}
+#reportStats .stat-card-profit-text{display:flex!important;flex-direction:column!important;align-items:stretch!important;min-width:0;width:100%}#reportStats .stat-value{font-size:28px!important;white-space:nowrap!important;text-overflow:clip!important;max-width:100%}
+#reportFilterChips{display:grid!important;grid-template-columns:minmax(0,1.65fr) repeat(3,minmax(0,1fr));width:100%;gap:10px!important;overflow:visible!important}#reportFilterChips .filter-chip{width:100%;min-width:0;padding:8px 4px!important}#rfMonthPillLabel{white-space:normal}
+</style></head>
 <body>
 
 <!-- ═══════════════ LOGIN SCREEN ═══════════════ -->
@@ -3050,8 +3057,8 @@ function bookingCardHtml(b){
         </div>
         <div class="bc-actions">
           <div class="bc-actions-row">
-            <button class="bc-btn bc-btn-invoice" onclick="openInvoice('${b.id}')">Create Invoice</button>
-            <button class="bc-btn bc-btn-confirm" onclick="openBookingConfirmation('${b.id}')">Booking Confirmation</button>
+            <button class="bc-btn bc-btn-invoice" onclick="openInvoice('${b.id}')">Invoice</button>
+            <button class="bc-btn bc-btn-confirm" onclick="openBookingConfirmation('${b.id}')">Confirmation</button>
           </div>
           <div class="bc-actions-row">
             <button class="bc-btn bc-btn-preview" onclick="openBookingPreview('${b.id}')">Preview</button>
@@ -3439,7 +3446,7 @@ function openBookingConfirmation(bookingId){
  * Returns a PNG data URL.
  */
 async function captureElementFitScreen(el, bgColor){
-  bgColor = bgColor || '#ffffff';
+  bgColor = bgColor || '#FFF2E5';
 
   const rect = el.getBoundingClientRect();
   const elW = Math.round(rect.width);
@@ -4570,7 +4577,7 @@ async function buildInvoiceCanvas(bookingId, forcePelunasan){
     <div style="padding:44px 72px;display:flex;flex-direction:column;gap:22px;">
 
       <!-- Billed to -->
-      <div style="background:linear-gradient(135deg,#FFF8F0,#FFF8F0);border:2px solid rgba(142,142,147,0.30);border-radius:22px;padding:28px 36px;">
+      <div style="background:#FFEFD8;background:linear-gradient(135deg,#FFEBD3,#FFF0DF);border:2px solid rgba(142,142,147,0.30);border-radius:22px;padding:28px 36px;">
         <div style="font-size:19px;font-weight:700;color:#8A6D56;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px;">Billed To</div>
         <div style="font-size:44px;font-weight:800;color:#1C1C1E;letter-spacing:-0.02em;line-height:1.1;margin-bottom:10px;">${escapeHtml(b.clientName || '-')}</div>
         <div style="font-size:26px;color:#1C1C1E;margin-bottom:4px;">${escapeHtml(b.phone || '-')}</div>
@@ -4579,7 +4586,7 @@ async function buildInvoiceCanvas(bookingId, forcePelunasan){
       </div>
 
       <!-- Line items -->
-      <div style="background:#fff;border:2px solid rgba(142,142,147,0.38);border-radius:22px;padding:28px 36px;">
+      <div style="background:#FFEBD3;border:2px solid rgba(142,142,147,0.38);border-radius:22px;padding:28px 36px;">
         <!-- Package -->
         <div style="display:flex;justify-content:space-between;align-items:baseline;padding:0 0 14px;border-bottom:1px solid rgba(142,142,147,0.28);">
           <span style="font-size:28px;font-weight:600;color:#1C1C1E;">${escapeHtml(pkg.label)}${escapeHtml(paxNote)}</span>
@@ -4603,7 +4610,7 @@ async function buildInvoiceCanvas(bookingId, forcePelunasan){
       </div>
 
       <!-- Payment info -->
-      <div style="background:linear-gradient(135deg,#FFF8F0,#FFF8F0);border:2px solid rgba(142,142,147,0.30);border-radius:22px;padding:24px 36px;">
+      <div style="background:#FFEFD8;background:linear-gradient(135deg,#FFEBD3,#FFF0DF);border:2px solid rgba(142,142,147,0.30);border-radius:22px;padding:24px 36px;">
         <div style="font-size:19px;font-weight:800;color:#8A6D56;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:14px;">Payment Information</div>
         <div style="font-size:28px;font-weight:700;color:#1C1C1E;margin-bottom:4px;">BCA: 861-004-6372</div>
         <div style="font-size:24px;color:#8A6D56;">a.n. Natalia Desiandra</div>
@@ -5147,16 +5154,12 @@ initAuth();
 // Size monetary values to their actual available width, including after report filters change.
 (function(){
  const ua=navigator.userAgent;
- if(/iPhone/.test(ua) && (navigator.standalone || matchMedia('(display-mode: standalone)').matches)){
+ if(/iPhone/.test(ua)){
   const probe=document.createElement('div');probe.style.paddingTop='env(safe-area-inset-top,0px)';document.body.appendChild(probe);
   if(parseFloat(getComputedStyle(probe).paddingTop)<1)document.documentElement.style.setProperty('--device-safe-top','59px');probe.remove();
  }
  let pending=false;
- function fit(){pending=false;document.querySelectorAll('#reportStats .stat-card-revenue .stat-value,#reportStats .stat-card-profit .stat-value').forEach(el=>{
-  el.style.removeProperty('font-size');if(!el.clientWidth)return;
-  let size=parseFloat(getComputedStyle(el).fontSize);
-  while(el.scrollWidth>el.clientWidth+1 && size>10){size-=.5;el.style.setProperty('font-size',size+'px','important');}
- });}
+ function fit(){pending=false;const values=[...document.querySelectorAll('#reportStats .stat-value')];const visible=values.filter(el=>el.clientWidth>0);if(!visible.length)return;let size=28;const apply=()=>values.forEach(el=>el.style.setProperty('font-size',size+'px','important'));apply();while(visible.some(el=>el.scrollWidth>el.clientWidth)&&size>10){size-=.5;apply();}}
  function schedule(){if(!pending){pending=true;requestAnimationFrame(fit);}}
  const stats=document.getElementById('reportStats');if(stats){new MutationObserver(schedule).observe(stats,{childList:true,subtree:true,characterData:true});if(window.ResizeObserver)new ResizeObserver(schedule).observe(stats);}
  window.addEventListener('resize',schedule);window.addEventListener('orientationchange',schedule);if(document.fonts)document.fonts.ready.then(schedule);schedule();
