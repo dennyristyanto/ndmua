@@ -1021,7 +1021,44 @@ html,body{background:#fffaf6}.app-shell{background:radial-gradient(ellipse at 10
 #plannerNoteForm #pnEvent,#plannerNoteForm #pnReminder{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',Arial,sans-serif!important;font-size:16px;font-weight:400;letter-spacing:normal;width:100%;min-width:0;box-sizing:border-box;padding:12px 14px;border:1px solid #ead5bf;border-radius:14px;background:linear-gradient(125deg,#fff0dc,#fff6ec);color:#584636;min-height:46px}
 #plannerNoteForm input::-webkit-date-and-time-value{font:inherit;text-align:left}#plannerNoteForm input::-webkit-datetime-edit{font:inherit}
 .planner-form-actions{display:flex;gap:12px;margin-top:16px}.planner-form-actions .btn{flex:1;min-height:44px}
-</style><style>.planner-note.planner-note-done{background:linear-gradient(125deg,#a9d9bd 0%,#c4e6ce 55%,#deefdf 100%)!important;border:1px solid #91c5a7;box-shadow:inset 0 1px 0 #effff4,0 4px 12px #42755714}.planner-note [data-copy],.planner-note [data-reopen]{background:linear-gradient(110deg,#ff7938,#ffad4d);border:1px solid #ffc387;color:#fff;box-shadow:0 4px 12px #f8873b38,inset 0 1px 0 #ffffff55;border-radius:999px;font-weight:650}.planner-note>div:last-child{flex-wrap:wrap;gap:8px}</style><style id="planner-popup-centered">#plannerPopup{top:50%;left:50%;right:auto;bottom:auto;transform:translate(-50%,-50%);max-height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 32px);overflow-y:auto}</style></head>
+</style><style>.planner-note.planner-note-done{background:linear-gradient(125deg,#a9d9bd 0%,#c4e6ce 55%,#deefdf 100%)!important;border:1px solid #91c5a7;box-shadow:inset 0 1px 0 #effff4,0 4px 12px #42755714}.planner-note [data-copy],.planner-note [data-reopen]{background:linear-gradient(110deg,#ff7938,#ffad4d);border:1px solid #ffc387;color:#fff;box-shadow:0 4px 12px #f8873b38,inset 0 1px 0 #ffffff55;border-radius:999px;font-weight:650}.planner-note>div:last-child{flex-wrap:wrap;gap:8px}</style><style id="planner-popup-centered">#plannerPopup{top:50%;left:50%;right:auto;bottom:auto;transform:translate(-50%,-50%);max-height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 32px);overflow-y:auto}</style><style id="invoice-compact-layout">
+#invSheet .inv-top{margin-bottom:14px}
+#invSheet .inv-brand-wrap{margin-bottom:14px}
+#invSheet .inv-meta{padding:11px 14px;line-height:1.55}
+#invSheet .inv-block-label{margin-bottom:6px}
+#invSheet .invoice-client{font-size:13px!important;line-height:1.45!important}
+#invSheet .inv-block-label[style]{margin-top:14px!important}
+#invSheet .inv-table{margin:6px 0 12px}
+#invSheet .inv-table td{padding:10px 0}
+#invSheet .inv-total{padding:13px 14px}
+#invSheet>section{margin:12px 0!important;padding:12px 14px!important}
+#invSheet>section>div{padding-top:7px!important;padding-bottom:7px!important}
+#invSheet .inv-bank{margin-top:12px;padding:13px 14px}
+#invSheet .inv-note{margin-top:10px!important;line-height:1.45}
+</style>
+<style id="confirmation-center-and-payment-spacing">
+body > .overlay.confirmation-overlay{position:fixed!important;inset:0!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:16px!important;margin:0!important;height:100dvh!important;box-sizing:border-box;z-index:2147483647!important}
+body > .confirmation-overlay > .modal{margin:0!important;position:relative!important;top:auto!important;left:auto!important;transform:none!important;width:100%;max-width:380px;max-height:calc(100dvh - 32px)!important;overflow-y:auto}
+#invSheet>section{line-height:1.4}
+#invSheet>section>p{margin:7px 0!important}
+#invSheet>section>div{padding-top:5px!important;padding-bottom:5px!important}
+#invSheet>section>div:last-child{margin-top:6px!important;padding-bottom:0!important}
+#invSheet .inv-bank-line{line-height:1.45}
+#invSheet .inv-bank-label{margin-bottom:6px}
+</style>
+<style>.modal-head .cancel-booking-client{font-size:18px;font-weight:700;line-height:1.35;color:var(--ink);margin-top:6px}.package-price-missing{color:#b42336!important;font-weight:700;white-space:normal!important;font-size:12px}.bc-price{gap:12px;flex-wrap:wrap}</style><style>
+.booking-card .package-price-missing{display:inline-flex;align-items:center;justify-content:center;padding:9px 13px;border-radius:16px;color:#fff!important;background:linear-gradient(130deg,#df8199,#eeaaa6);border:1px solid #f6b9c2;box-shadow:inset 0 2px 0 #ffffff55,0 0 0 3px #f7d3ce99,0 5px 12px #c9657e20;line-height:1.4;text-align:center;max-width:100%;box-sizing:border-box}
+#reportStats .stat-card-bookings{cursor:pointer}#reportStats .stat-card-bookings:focus-visible{outline:3px solid #d57235;outline-offset:3px}
+</style><style id="payment-alert-and-unpaid-tag">
+#packagePriceAlert .modal-body > button{display:flex;align-items:center;justify-content:center;margin-left:auto;margin-right:auto;min-width:84px}
+.pay-tag.none{color:#b42336!important;background:linear-gradient(130deg,#fbd6e1,#fff0f3)!important;border:1px solid #f0bdcc;box-shadow:inset 0 1px 0 #ffffffaa}
+</style>
+<style>
+#doneReminder{margin-bottom:18px;padding:20px;border-radius:22px;background:linear-gradient(130deg,#ffe1d7,#fff0df);border:1px solid #efbba6;box-shadow:inset 0 1px 0 #fff,0 6px 18px #b97b4510;color:#874b35}
+#doneReminder h3{font-size:17px;margin:0 0 8px}#doneReminder p{font-size:13px;line-height:1.5;margin:0 0 12px}
+#doneReminder button{font:inherit;display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;padding:12px;margin-top:8px;border:1px solid #edcbb4;border-radius:13px;background:#fffaf080;color:inherit;text-align:left;cursor:pointer}
+#doneReminder button strong,#doneReminder button small{display:block}#doneReminder button small{margin-top:4px;font-size:12px}#doneReminder button>span:last-child{font-size:12px;flex-shrink:0}
+</style><style>.bc-btn.bc-btn-invoice:disabled{background:#e1e1e4!important;color:#939399!important;border-color:#d4d4d8!important;box-shadow:none!important;cursor:not-allowed;transform:none!important}</style><style id="trial-confirmation-centered-actions">#trialConfirmationSheet + .form-actions{display:flex;justify-content:center;align-items:center;gap:12px}#trialConfirmationSheet + .form-actions > button{flex:0 0 auto}</style></head>
 <body>
 
 <!-- ═══════════════ LOGIN SCREEN ═══════════════ -->
@@ -1272,6 +1309,7 @@ const PACKAGES = {
   'Indoor Photoshoot':  { label: 'Indoor Photoshoot',  color: '#b97572', tint: '#b9757218' },
   'Wedding Trial':      { label: 'Wedding Trial',      color: '#75665b', tint: '#75665b18' },
   'Others':             { label: 'Others',             color: '#8b7c99', tint: '#8b7c9918' },
+  'Trial Make Up': { label: 'Trial Make Up', color: '#8b9d89', tint: '#8b9d8918' },
 };
 const DEPOSIT_STAGES = ['Deposit 1', 'Deposit 2', 'Full Payment'];
 const CONTENT_STATUSES = ['No content yet', 'Editing content', 'Content Posted', 'No Post'];
@@ -1442,6 +1480,8 @@ function onDiscountTypeChange(){
 
 function updateTeamCostVisibility(){
   const pkg = (document.getElementById('f_package') || {}).value || '';
+  const price=document.getElementById('f_price');
+  if(price){price.required=pkg!=='Trial Make Up';price.placeholder=pkg==='Trial Make Up'?'Optional':'0';}
   const handled = (document.getElementById('f_handledBy') || {}).value || '';
   const show = pkg === 'Diamond Wedding' || handled === 'Team';
   const wrap = document.getElementById('f_teamAllocationWrap');
@@ -1546,6 +1586,9 @@ function onBalancePaymentInput(el){
     }
   }
 }
+function isTrialMakeUp(b){return b.package === 'Trial Make Up';}
+function packagePriceMissing(b){ if(isTrialMakeUp(b))return false; return b.price == null || String(b.price).trim() === '' || !Number.isFinite(Number(b.price)) || Number(b.price) <= 0; }
+function packagePriceWarning(){ return '<span class="package-price-missing" style="color:#b42336;font-weight:700;white-space:normal">Price not set</span>'; }
 function bookingBasePrice(b){
   const price = Number(b.price) || 0;
   const pax = Number(b.totalPax) || 1;
@@ -1592,16 +1635,26 @@ function isPastDateTime(b){
   }
   return eventDateTime < now;
 }
-function hasBookingEnded(b, now = new Date()){
-  if(!b.date) return false;
-  const [y,m,d]=b.date.split('-').map(Number);
-  // All-day and bookings without an end time remain open until the next day.
-  if(b.allDay || !b.timeEnd) return now >= new Date(y,m-1,d+1);
-  const [hh,mm]=b.timeEnd.split(':').map(Number);
-  if(!Number.isFinite(hh)||!Number.isFinite(mm))return false;
-  const end=new Date(y,m-1,d,hh,mm);
-  if(b.time && timeToMinutes(b.timeEnd)<timeToMinutes(b.time))end.setDate(end.getDate()+1);
-  return now>end;
+function bookingFinishDeadline(b){
+ if(!/^\d{4}-(0[1-9]|1[0-2])-\d{2}$/.test(b.date||''))return null;
+ const [y,m,d]=b.date.split('-').map(Number);
+ const day=new Date(y,m-1,d);
+ if(day.getFullYear()!==y||day.getMonth()!==m-1||day.getDate()!==d)return null;
+ if(b.allDay)return new Date(y,m-1,d+1);
+ const validTime=t=>/^([01]\d|2[0-3]):[0-5]\d$/.test(t||'');
+ if(validTime(b.timeEnd)){
+  const [h,min]=b.timeEnd.split(':').map(Number);const end=new Date(y,m-1,d,h,min);
+  if(validTime(b.time)&&timeToMinutes(b.timeEnd)<timeToMinutes(b.time))end.setDate(end.getDate()+1);
+  return end;
+ }
+ if(validTime(b.time)){
+  const [h,min]=b.time.split(':').map(Number);
+  return new Date(new Date(y,m-1,d,h,min).getTime()+3*60*60*1000);
+ }
+ return null;
+}
+function hasBookingEnded(b,now=new Date()){
+ const deadline=bookingFinishDeadline(b);return deadline!==null && now>=deadline;
 }
 function timeToMinutes(t){
   const [h, m] = t.split(':').map(Number);
@@ -1635,8 +1688,8 @@ function timeKey(b){ return b.time || '99:99'; }
 /* ================= CUSTOM DIALOGS (no native confirm/alert) ================= */
 function customConfirm(message, onYes, onNo){
   const div = document.createElement('div');
-  div.className = 'overlay';
-  div.style.zIndex = '300';
+  div.className = 'overlay confirmation-overlay';
+  div.style.zIndex = '2147483647';
   div.innerHTML = `
     <div class="modal w-sm">
       <div class="modal-body" style="padding-top:24px;">
@@ -1682,6 +1735,7 @@ function updateDateWeekday(){
 /* ================= CALENDAR RENDER ================= */
 function renderCalendar(){
   renderHairdoReminder();
+  renderDoneReminder();
   const calTitleEl = document.getElementById('calTitle') || document.getElementById('calMonthLabel');
   if(calTitleEl) calTitleEl.textContent = `${MONTHS_ID[viewMonth]} ${viewYear}`;
   const grid = document.getElementById('calGrid');
@@ -1753,6 +1807,27 @@ function getMissingHairdoBookings(now = new Date()){
   return bookings.filter(b => !b.cancelled && !b.done && b.date >= start && b.date <= end && !String(b.hairdo || '').trim())
     .sort((a,b) => a.date.localeCompare(b.date) || timeKey(a).localeCompare(timeKey(b)));
 }
+function getOverdueTodayBookings(now=new Date()){
+ return bookings.filter(b=>!b.cancelled&&!b.done&&hasBookingEnded(b,now)).sort((a,b)=>bookingFinishDeadline(a)-bookingFinishDeadline(b));
+}
+function renderDoneReminder(){
+ const home=document.getElementById('viewHome');
+ if(!home || !dataLoaded)return;
+ let card=document.getElementById('doneReminder');
+ const overdue=getOverdueTodayBookings();
+ if(!overdue.length){if(card)card.remove();return;}
+ if(!card){card=document.createElement('section');card.id='doneReminder';card.setAttribute('role','status');}
+ home.prepend(card);
+ card.innerHTML=`<h3>Action required · ${overdue.length} booking${overdue.length===1?'':'s'} pending DONE</h3><p>These bookings are past their finish time, or started at least 3 hours ago with no finish time set. Please review them and mark them as DONE.</p>`+overdue.map(b=>`<button type="button" data-id="${escapeHtml(b.id)}"><span><strong>${escapeHtml(b.clientName)} — ${escapeHtml((PACKAGES[b.package]||PACKAGES.Others).label)}</strong><small>${escapeHtml(formatDateLong(b.date))} · ${escapeHtml(formatTimeRange(b)||b.time||'All Day')}</small></span><span>Review booking →</span></button>`).join('');
+ card.querySelectorAll('button').forEach(button=>button.onclick=()=>{
+  const b=bookings.find(x=>x.id===button.dataset.id);
+  if(!b)return;
+  showModal(`<div class="overlay" onclick="if(event.target===this)closeModal()"><div class="modal w-lg"><div class="modal-head"><div><h2>Review Booking</h2><div class="sub">Please mark this booking as DONE once completed.</div></div><button class="modal-close" onclick="closeModal()">✕</button></div><div class="modal-body">${bookingCardHtml(b)}</div></div></div>`);
+ });
+}
+setInterval(()=>{if(currentView==='home')renderDoneReminder();},30000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)renderDoneReminder();});
+
 function renderHairdoReminder(){
   const home = document.getElementById('viewHome');
   if(!home || !dataLoaded) return;
@@ -1767,6 +1842,7 @@ function renderHairdoReminder(){
 function renderSummary(){
   checkPlannerReminders();
   renderHairdoReminder();
+  renderDoneReminder();
   const list = document.getElementById('summaryList') || document.getElementById('summaryGrid');
   if(!list || !dataLoaded) return;
 
@@ -1777,7 +1853,7 @@ function renderSummary(){
   for(let i = 0; i < 7; i++){
     const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() + i);
     const dateStr = toDateStr(d.getFullYear(), d.getMonth(), d.getDate());
-    const dayBookings = bookingsOnDate(dateStr).sort((a,b) => timeKey(a).localeCompare(timeKey(b)) || a.clientName.localeCompare(b.clientName));
+    const dayBookings = bookingsOnDate(dateStr).filter(b => !b.done).sort((a,b) => timeKey(a).localeCompare(timeKey(b)) || a.clientName.localeCompare(b.clientName));
     const prefix = i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : FULL_DAYS_ID[d.getDay()];
     const dateLabel = `${d.getDate()} ${MONTHS_ID[d.getMonth()]}`;
 
@@ -1814,12 +1890,26 @@ function renderSummary(){
   list.innerHTML = html;
 }
 
+function openSpecificBooking(id){
+ const b=bookings.find(x=>x.id===id);if(!b)return;
+ showModal(`<div class="overlay" onclick="if(event.target===this)closeModal()"><div class="modal w-lg"><div class="modal-head"><div><h2>Booking Details</h2><div class="sub">${escapeHtml(formatDateLong(b.date))}</div></div><button class="modal-close" onclick="closeModal()">✕</button></div><div class="modal-body">${bookingCardHtml(b)}</div></div></div>`);
+}
+function autoFillFinishTime(start){
+ const end=document.getElementById('f_timeEnd');
+ if(!end || !/^([01]\d|2[0-3]):[0-5]\d$/.test(start.value))return;
+ if(end.dataset.manual==='true' && end.value)return;
+ const minutes=(timeToMinutes(start.value)+120)%1440;
+ end.value=pad(Math.floor(minutes/60))+':'+pad(minutes%60);
+}
+function syncStartTimeRequired(){
+ const field=document.getElementById('f_time');if(field)field.required=!document.getElementById('f_openDate')?.checked&&!document.getElementById('f_allDay')?.checked;
+}
 function summaryItemHtml(b){
   const pkg = PACKAGES[b.package] || PACKAGES.Others;
 
   let payLabel = 'No Deposit Yet';
   let payClass = 'pay-tag none';
-  if(b.depositStage === 'Full Payment'){
+  if(packagePriceMissing(b)){ payLabel = 'Price not set'; payClass = 'pay-tag package-price-missing'; } else if(b.depositStage === 'Full Payment'){
     payLabel = 'Paid in Full';
     payClass = 'pay-tag lunas';
   } else if(b.depositStage){
@@ -1827,6 +1917,7 @@ function summaryItemHtml(b){
     payClass = 'pay-tag deposit';
   }
 
+  if(isTrialMakeUp(b)){payLabel='';payClass='pay-tag';}
   const isTeam = b.handledBy === 'Team';
   const hasPayment = (b.depositAmount && b.depositAmount > 0) || b.depositStage === 'Full Payment';
   const isPaid = b.depositStage === 'Full Payment';
@@ -1842,13 +1933,13 @@ function summaryItemHtml(b){
   const line2 = b.time ? `Time ${escapeHtml(b.time)} - ${escapeHtml(b.venue) || '-'} - ${handledInitial}` : `${escapeHtml(b.venue) || '-'} - ${handledInitial}`;
 
   return `
-    <div class="${itemClass}" onclick="openDayModal('${b.date}')">
+    <div class="${itemClass}" role="button" tabindex="0" onclick="openSpecificBooking('${b.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openSpecificBooking('${b.id}');}">
       <span class="mini-dot" style="background:${pkg.color}"></span>
       <div class="summary-item-text">
         <div class="si-name" style="color:${textColor};">${escapeHtml(b.clientName)} - ${pkg.label}</div>
         <div class="si-sub">${line2}</div>
       </div>
-      <span class="${payClass}" style="flex:none;">${payLabel}</span>
+      ${isTrialMakeUp(b)?'':`<span class="${payClass}" style="flex:none;">${payLabel}</span>`}
     </div>
   `;
 }
@@ -1866,7 +1957,7 @@ function goToday(){
 }
 
 
-function toggleOpenDate(open){const date=document.getElementById('f_date');date.disabled=open;date.required=!open;if(open)date.value='';updateDateWeekday();}
+function toggleOpenDate(open){const date=document.getElementById('f_date');date.disabled=open;date.required=!open;if(open)date.value='';updateDateWeekday();syncStartTimeRequired();}
 function openUndatedBooking(){openBookingForm(null,null,{date:''});toggleOpenDate(true);}
 async function savePlannerNotes(){await bookingsDocRef().set({plannerNotes,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});}
 function plannerNoteUpcoming(note,now=Date.now()){return new Date(note.eventAt).getTime()>=now;}
@@ -2162,7 +2253,8 @@ function openBookingDetailFromHistory(id){
 function renderBookingsMonthOptions(){
   const el = document.getElementById('bookingsMonthSelect');
   if(!el) return;
-  const months = [...new Set(bookings.filter(b=>!b.cancelled&&!b.done).map(b=>b.date.slice(0,7)))].sort();
+  const months = [...new Set(bookings.filter(b=>!b.cancelled&&!b.done && /^\d{4}-(0[1-9]|1[0-2])-\d{2}$/.test(b.date||'')).map(b=>b.date.slice(0,7)))].sort();
+  if(bookingsMonthFilter!=='all'&&!months.includes(bookingsMonthFilter))bookingsMonthFilter='all';
   el.innerHTML = `<option value="all">All months</option>` + months.map(m => {
     const [y, mm] = m.split('-').map(Number);
     const label = `${MONTHS_ID[mm-1]} ${y}`;
@@ -2479,6 +2571,12 @@ function computeReportFinancials(filtered){
     profit:totalRevenue-operatingCost-developmentCost-hairdoCost-transportationCost-teamCost};
 }
 
+function openReportBookingHistory(){
+ const list=getReportFilteredBookings();
+ const status={all:'All bookings',booked:'Past',upcoming:'Upcoming',cancelled:'Cancelled'}[reportFilter]||'All bookings';
+ const month=reportMonthFilter==='all'?'All months':(()=>{const [y,m]=reportMonthFilter.split('-').map(Number);return MONTHS_ID[m-1]+' '+y;})();
+ showModal(`<div class="overlay" onclick="if(event.target===this)closeModal()"><div class="modal w-lg"><div class="modal-head"><div><h2>Booking History</h2><div class="sub">${escapeHtml(month)} · ${status} · ${list.length} booking</div></div><button class="modal-close" onclick="closeModal()">✕</button></div><div class="modal-body">${list.length?list.map(b=>`<div style="margin-bottom:18px"><p style="font-weight:700">${escapeHtml(formatDateLong(b.date))}</p>${bookingCardHtml(b)}</div>`).join(''):'<p>No bookings for this filter.</p>'}</div></div></div>`);
+}
 function renderReport(){
   renderReportFilterChips();
 
@@ -2491,7 +2589,7 @@ function renderReport(){
   const statsEl = document.getElementById('reportStats');
   if(statsEl){
     statsEl.innerHTML = `
-      <div class="stat-card stat-card-bookings">
+      <div class="stat-card stat-card-bookings" role="button" tabindex="0" aria-label="View filtered booking history" onclick="openReportBookingHistory()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openReportBookingHistory();}">
         <div class="stat-card-icon">
           <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>
         </div>
@@ -3100,12 +3198,13 @@ function bookingCardHtml(b){
   const pkg = PACKAGES[b.package] || PACKAGES.Others;
   const checkSvg = `<svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="7" cy="7" r="6" stroke-opacity="0.5"/><path d="M4 7l2 2 4-4"/></svg>`;
   let payTag = `<span class="pay-tag none">No Deposit Yet</span>`;
-  if(b.depositStage === 'Full Payment'){
+  if(packagePriceMissing(b)){ payTag = packagePriceWarning(); } else if(b.depositStage === 'Full Payment'){
     payTag = `<span class="pay-tag lunas">${checkSvg}Paid in Full</span>`;
   } else if(b.depositStage){
     payTag = `<span class="pay-tag deposit">${b.depositStage}: ${formatRupiah(b.depositAmount)}</span>`;
   }
 
+  if(isTrialMakeUp(b))payTag='';
   const totalDue = bookingTotalDue(b);
   let remaining = totalDue;
   if(b.depositStage === 'Full Payment'){
@@ -3113,7 +3212,7 @@ function bookingCardHtml(b){
   } else if(b.depositAmount){
     remaining = Math.max(remaining - b.depositAmount, 0);
   }
-  const remainingHtml = remaining > 0
+  const remainingHtml = isTrialMakeUp(b) ? '' : packagePriceMissing(b) ? packagePriceWarning() : remaining > 0
     ? `<button type="button" class="bc-remaining" onclick="openInvoice('${b.id}', true)">Balance Due: ${formatRupiah(remaining)}</button>`
     : `<div class="bc-paid-full"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="#1C1C1E" stroke-width="2" stroke-linecap="round"><circle cx="7" cy="7" r="6" stroke-opacity="0.5"/><path d="M4 7l2 2 4-4"/></svg>Paid in Full</div>`;
 
@@ -3141,19 +3240,18 @@ function bookingCardHtml(b){
           ${remainingHtml}
         </div>
         <div class="bc-actions">
-          <div class="bc-actions-row">
-            <button class="bc-btn bc-btn-invoice" onclick="openInvoice('${b.id}')">Invoice</button>
+          ${b.cancelled ? '' : `<div class="bc-actions-row">
+            <button class="bc-btn bc-btn-invoice" ${isTrialMakeUp(b)?'disabled aria-disabled="true"':''} onclick="openInvoice('${b.id}')">Invoice</button>
             <button class="bc-btn bc-btn-confirm" onclick="openBookingConfirmation('${b.id}')">Confirmation</button>
-          </div>
+          </div>`}
           <div class="bc-actions-row">
             <button class="bc-btn bc-btn-preview" onclick="openBookingPreview('${b.id}')">Preview</button>
-            <button class="bc-btn bc-btn-edit" onclick="openBookingForm('${b.id}')">Edit</button>
-            <button class="bc-btn bc-btn-cancel" onclick="cancelBooking('${b.id}')">Cancel</button>
+            ${b.cancelled ? `<button class="bc-btn bc-btn-cancel" onclick="deleteCancelledBooking('${b.id}')">Delete</button><button class="bc-btn bc-btn-edit" onclick="reactivateCancelledBooking('${b.id}')">Reactivate</button>` : `<button class="bc-btn bc-btn-edit" onclick="openBookingForm('${b.id}')">Edit</button><button class="bc-btn bc-btn-cancel" onclick="cancelBooking('${b.id}')">Cancel</button>`}
           </div>
-          ${b.done
+          ${b.cancelled ? '' : b.done
             ? `<div class="bc-done-badge">Done ✓</div>`
             : (hasBookingEnded(b)
-                ? (b.depositStage === 'Full Payment'
+                ? (isTrialMakeUp(b) || b.depositStage === 'Full Payment'
                     ? `<button class="bc-btn-done" onclick="markDone('${b.id}')">DONE</button>`
                     : `<button class="bc-btn-done" disabled title="Payment must be Paid in Full">DONE</button><p class="bc-done-hint">Payment must be Paid in Full</p>`)
                 : '')}
@@ -3164,11 +3262,13 @@ function bookingCardHtml(b){
 }
 
 function buildConfirmationText(b){
+  if(isTrialMakeUp(b))return 'Trial Make Up Confirmation\nNataliadesiandra MUA\n\n'+trialConfirmationRows(b).map(([k,v])=>k+': '+v).join('\n')+(b.note?'\nNotes: '+b.note:'');
   const pkg = PACKAGES[b.package] || PACKAGES.Others;
   let payStatus = 'No Deposit Yet';
   if(b.depositStage === 'Full Payment') payStatus = 'Paid in Full';
   else if(b.depositStage) payStatus = `${b.depositStage} - ${formatRupiah(b.depositAmount)}`;
 
+  if(packagePriceMissing(b)) payStatus = 'Price not set';
   const homeService = b.homeServiceFee || 0;
   const transport = b.transportFee || 0;
   const others = b.othersFee || 0;
@@ -3230,6 +3330,7 @@ function openBookingPreview(bookingId, source){
     ['Hairdo', b.hairdo || '-'],
     ['Hairdo Price', b.hairdoPrice ? formatRupiah(b.hairdoPrice) : '-'],
     ['Package Price', (() => {
+      if(packagePriceMissing(b)) return 'Price not set';
       const pax = Number(b.totalPax) || 1;
       return pax > 1 ? `${formatRupiah(b.price)} × ${pax} pax = ${formatRupiah(bookingBasePrice(b))}` : formatRupiah(b.price);
     })()],
@@ -3251,7 +3352,7 @@ function openBookingPreview(bookingId, source){
   rows.push(['Internal Notes', b.internalNotes || '-']);
 
   const rowsHtml = rows.map(([label, value]) =>
-    `<div class="preview-row"><span class="preview-label">${escapeHtml(label)}</span><span class="preview-value">${escapeHtml(String(value))}</span></div>`
+    `<div class="preview-row"><span class="preview-label">${escapeHtml(label)}</span><span class="preview-value ${value === 'Price not set' ? 'package-price-missing' : ''}">${escapeHtml(String(value))}</span></div>`
   ).join('');
 
   // Use dedicated preview overlay (align-items:flex-start) so header is never clipped
@@ -3313,9 +3414,24 @@ function closePreviewModal(){
   }
 }
 
+function trialConfirmationRows(b){
+ return [['Client',b.clientName],['Date',formatDateLong(b.date)],['Time',b.allDay?'All Day':formatTimeRange(b)||'To be confirmed'],['Venue',b.venue||'To be confirmed'],['Phone',b.phone],['Makeup Artist',b.handledBy||'Nataliadesiandra'],['Look',b.look],['Hairdo',b.hairdo]].filter(([k,v])=>v && v!=='-');
+}
+function trialConfirmationHtml(b){
+ return `<div style="padding:24px;background:linear-gradient(130deg,#eef4e9,#fff4e8);color:#3e5142;border-radius:22px;font-family:-apple-system,BlinkMacSystemFont,sans-serif"><div style="display:flex;align-items:center;gap:12px"><img src="${LOGO_SRC}" style="width:52px;height:52px;border-radius:14px"><strong>Nataliadesiandra MUA</strong></div><h2 style="margin:22px 0 8px">Trial Make Up Confirmation</h2><p style="line-height:1.5">Your makeup trial appointment is confirmed. We look forward to creating your look together.</p><div style="background:#ffffffa8;border-radius:16px;padding:16px;margin-top:18px">${trialConfirmationRows(b).map(([k,v])=>`<div style="padding:8px 0"><small style="color:#7c8879">${k}</small><div style="font-weight:600;overflow-wrap:anywhere">${escapeHtml(String(v))}</div></div>`).join('')}</div>${b.note?`<div style="margin-top:16px;white-space:pre-wrap"><strong>Notes</strong><p>${escapeHtml(b.note)}</p></div>`:''}<p style="margin-top:20px;text-align:center">See you at your trial session!</p></div>`;
+}
+function openTrialConfirmation(b){
+ showModal(`<div class="overlay" onclick="if(event.target===this)closeModal()"><div class="modal w-lg"><div class="modal-head"><h2>Trial Confirmation</h2><button class="modal-close" onclick="closeModal()">✕</button></div><div class="modal-body"><div id="trialConfirmationSheet">${trialConfirmationHtml(b)}</div><div class="form-actions"><button class="btn btn-ghost" onclick="closeModal()">Close</button><button class="btn btn-primary" onclick="shareTrialConfirmation()">Share</button></div></div></div></div>`);
+}
+async function shareTrialConfirmation(){
+ const sheet=document.getElementById('trialConfirmationSheet');if(!sheet)return;
+ try{const canvas=await html2canvas(sheet,{scale:2,backgroundColor:'#fffaf5',useCORS:true});showImageShareOverlay(canvas.toDataURL('image/png'),'TrialMakeUpConfirmation.png');}
+ catch(error){console.error(error);showToast('Could not create the confirmation image. Please try again.');}
+}
 function openBookingConfirmation(bookingId){
   const b = bookings.find(x => x.id === bookingId);
   if(!b) return;
+  if(isTrialMakeUp(b))return openTrialConfirmation(b);
   const pkg = PACKAGES[b.package] || PACKAGES.Others;
 
   // ── Data ──────────────────────────────────────────────
@@ -3325,6 +3441,7 @@ function openBookingConfirmation(bookingId){
   if(b.depositStage === 'Full Payment'){ payStatus = '✓ Paid in Full'; payStatusShort = 'Paid in Full'; payColor = '#1C1C1E'; }
   else if(b.depositStage){ payStatus = `${b.depositStage} — ${formatRupiah(b.depositAmount)}`; payStatusShort = /^deposit/i.test(b.depositStage) ? 'Deposit' : b.depositStage; payColor = '#8E8E93'; }
 
+  if(packagePriceMissing(b)){ payStatus = payStatusShort = 'Price not set'; payColor = '#b42336'; }
   const pax        = Number(b.totalPax) || 1;
   const basePrice  = bookingBasePrice(b);
   const discount   = bookingDiscount(b);
@@ -3429,7 +3546,7 @@ function openBookingConfirmation(bookingId){
         <div style="display:flex;flex-direction:column;gap:0;">
           <div style="display:flex;justify-content:space-between;align-items:baseline;padding:7px 0;border-bottom:1px solid rgba(142,142,147,0.25);">
             <span style="font-size:13px;font-weight:600;color:#1C1C1E;">${escapeHtml(pkg.label)}${escapeHtml(paxNote)}</span>
-            <span style="font-size:13px;font-weight:700;color:#1C1C1E;white-space:nowrap;padding-left:8px;">${formatRupiah(basePrice)}</span>
+            <span style="font-size:13px;font-weight:700;color:#1C1C1E;white-space:nowrap;padding-left:8px;">${packagePriceMissing(b) ? packagePriceWarning() : formatRupiah(basePrice)}</span>
           </div>
           ${discount > 0 ? `<div style="display:flex;justify-content:space-between;align-items:baseline;padding:7px 0;border-bottom:1px solid rgba(142,142,147,0.18);">
             <span style="font-size:13px;color:#4d705b;font-weight:600;">${escapeHtml(discLabel)}</span>
@@ -3457,7 +3574,7 @@ function openBookingConfirmation(bookingId){
               Payment
             </span>
             <span style="font-size:12px;font-weight:700;color:${payColor};white-space:nowrap;flex-shrink:0;padding-left:8px;">
-              ${b.depositStage === 'Full Payment'
+              ${packagePriceMissing(b) ? 'Price not set' : b.depositStage === 'Full Payment'
                 ? '✓ Paid in Full'
                 : b.depositAmount
                   ? formatRupiah(b.depositAmount)
@@ -3650,13 +3767,14 @@ async function buildBcConfDataUrl(bookingId){
     if(b.depositStage === 'Full Payment'){ payColor='#1C1C1E'; payValue='✓ Paid in Full'; }
     else if(b.depositStage){ payColor='#8A6D56'; payLabel='Payment'; payValue=b.depositAmount ? formatRupiah(b.depositAmount) : '-'; }
 
+    if(packagePriceMissing(b)){ payValue='Price not set'; payColor='#b42336'; }
     const infoGrid = [
       ['Date',    dateStr],
       ['Venue',   b.venue || '-'],
       ['Phone',   b.phone || '-'],
       ['Package', pkg.label],
       ['Look', b.look || '-'],
-      ['Payment', b.depositStage === 'Full Payment' ? 'Paid in Full' : (/^deposit/i.test(b.depositStage||'') ? 'Deposit' : (b.depositStage || 'No Deposit Yet'))],
+      ['Payment', packagePriceMissing(b) ? 'Price not set' : b.depositStage === 'Full Payment' ? 'Paid in Full' : (/^deposit/i.test(b.depositStage||'') ? 'Deposit' : (b.depositStage || 'No Deposit Yet'))],
     ].filter(Boolean).map(([label, val]) => `
       <div style="padding:22px 24px;border-bottom:1px solid #E8D9C8;">
         <div style="font-size:20px;font-weight:700;color:#8A6D56;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.05em;">${escapeHtml(label)}</div>
@@ -3719,7 +3837,7 @@ async function buildBcConfDataUrl(bookingId){
           <div style="font-size:20px;font-weight:800;color:#8A6D56;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:24px;">Payment Summary</div>
           <div style="display:flex;justify-content:space-between;align-items:baseline;padding:12px 0;border-bottom:1px solid rgba(142,142,147,0.28);">
             <span style="font-size:26px;font-weight:600;color:#1C1C1E;">${escapeHtml(pkg.label)}${escapeHtml(paxNote)}</span>
-            <span style="font-size:26px;font-weight:700;color:#1C1C1E;white-space:nowrap;padding-left:16px;">${formatRupiah(basePrice)}</span>
+            <span style="font-size:26px;font-weight:700;color:#1C1C1E;white-space:nowrap;padding-left:16px;">${packagePriceMissing(b) ? packagePriceWarning() : formatRupiah(basePrice)}</span>
           </div>
           ${feeRows}
           <div style="height:1px;background:rgba(142,142,147,0.4);margin:14px 0;"></div>
@@ -4034,14 +4152,24 @@ function bookingPayments(b){
 }
 function paymentRowHtml(p={}){
  return `<div class="payment-entry" data-id="${escapeHtml(p.id||uid())}" data-legacy="${p.legacy?'true':'false'}">
- <label>Date<input type="date" class="payment-date" value="${escapeHtml(p.date||'')}" ${p.legacy?'':'required'}></label>
- <label>Type<select class="payment-type">${['Deposit','Balance Payment','Full Payment'].map(t=>`<option ${p.type===t?'selected':''}>${t}</option>`).join('')}</select></label>
- <label>Amount (Rp)<input type="text" class="payment-amount" inputmode="numeric" value="${groupThousands(p.amount||'')}" required oninput="formatThousands(this)"></label>
+ <label>Date<input type="date" class="payment-date" onfocus="requirePackagePrice()" value="${escapeHtml(p.date||'')}" ${p.legacy?'':'required'}></label>
+ <label>Type<select class="payment-type" onfocus="requirePackagePrice()">${['Deposit','Balance Payment','Full Payment'].map(t=>`<option ${p.type===t?'selected':''}>${t}</option>`).join('')}</select></label>
+ <label>Amount (Rp)<input type="text" class="payment-amount" onfocus="requirePackagePrice()" inputmode="numeric" value="${groupThousands(p.amount||'')}" required oninput="formatThousands(this)"></label>
  <button type="button" class="btn btn-ghost-danger" onclick="this.closest('.payment-entry').remove()">Remove</button>
  ${p.legacy?'<small>Previous payment — date not recorded. Fill in the actual date if known.</small>':''}</div>`;
 }
-function addPaymentEntry(){document.getElementById('paymentEntries').insertAdjacentHTML('beforeend',paymentRowHtml());}
+function requirePackagePrice(){
+ const field=document.getElementById('f_price');
+ if(field && Number(field.value.replace(/[^0-9]/g,''))>0)return true;
+ if(document.getElementById('packagePriceAlert'))return false;
+ const overlay=document.createElement('div');overlay.id='packagePriceAlert';overlay.className='overlay confirmation-overlay';
+ overlay.innerHTML='<div class="modal w-sm" role="alertdialog" aria-modal="true" aria-label="Harga paket"><div class="modal-body"><p style="font-weight:700">Masukkan harga paket terlebih dahulu.</p><button type="button" class="btn btn-primary">OK</button></div></div>';
+ document.body.appendChild(overlay);
+ const ok=overlay.querySelector('button');ok.onclick=()=>{overlay.remove();if(field){field.scrollIntoView({block:'center',behavior:'smooth'});field.focus();}};ok.focus();return false;
+}
+function addPaymentEntry(){if(!requirePackagePrice())return;document.getElementById('paymentEntries').insertAdjacentHTML('beforeend',paymentRowHtml());}
 function readPaymentEntries(){
+ if(document.querySelector('#paymentEntries .payment-entry') && !requirePackagePrice())throw new Error('Masukkan harga paket terlebih dahulu.');
  return [...document.querySelectorAll('#paymentEntries .payment-entry')].map(row=>{
  const date=row.querySelector('.payment-date').value,amount=Number(row.querySelector('.payment-amount').value.replace(/[^0-9]/g,''));
  const legacy=row.dataset.legacy==='true';
@@ -4121,17 +4249,17 @@ function openBookingForm(bookingId, presetDate, prefillData){
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
               <div>
                 <label style="display:block;font-size:11.5px;font-weight:700;color:#000;margin-bottom:3px;">Time Start</label>
-                <input type="time" id="f_time" value="${b.time || ''}" style="width:100%;padding:7px 10px;font-size:13px;font-weight:700;border-radius:8px;border:1.5px solid var(--line);background:#fff;color:#000;box-sizing:border-box;-webkit-appearance:none;">
+                <input type="time" id="f_time" oninput="autoFillFinishTime(this)" ${b.date && !b.allDay ? 'required' : ''} value="${b.time || ''}" style="width:100%;padding:7px 10px;font-size:13px;font-weight:700;border-radius:8px;border:1.5px solid var(--line);background:#fff;color:#000;box-sizing:border-box;-webkit-appearance:none;">
               </div>
               <div>
                 <label style="display:block;font-size:11.5px;font-weight:700;color:#000;margin-bottom:3px;">Time Finish</label>
-                <input type="time" id="f_timeEnd" value="${b.timeEnd || ''}" style="width:100%;padding:7px 10px;font-size:13px;font-weight:700;border-radius:8px;border:1.5px solid var(--line);background:#fff;color:#000;box-sizing:border-box;-webkit-appearance:none;">
+                <input type="time" id="f_timeEnd" data-manual="${b.timeEnd?'true':'false'}" oninput="this.dataset.manual=this.value?'true':'false'" value="${b.timeEnd || ''}" style="width:100%;padding:7px 10px;font-size:13px;font-weight:700;border-radius:8px;border:1.5px solid var(--line);background:#fff;color:#000;box-sizing:border-box;-webkit-appearance:none;">
               </div>
             </div>
 
             <div class="field booking-date-switches">
               <div class="toggle-row"><span class="toggle-label">Open Date</span><label class="switch"><input type="checkbox" id="f_openDate" role="switch" aria-label="Open Date" ${!b.date?'checked':''} onchange="toggleOpenDate(this.checked)"><span class="switch-slider"></span></label></div>
-              <div class="toggle-row"><span class="toggle-label">All Day<small>Blocks this date</small></span><label class="switch"><input type="checkbox" id="f_allDay" role="switch" aria-label="All Day (blocks this date)" ${b.allDay?'checked':''}><span class="switch-slider"></span></label></div>
+              <div class="toggle-row"><span class="toggle-label">All Day<small>Blocks this date</small></span><label class="switch"><input type="checkbox" id="f_allDay" onchange="syncStartTimeRequired()" role="switch" aria-label="All Day (blocks this date)" ${b.allDay?'checked':''}><span class="switch-slider"></span></label></div>
             </div>
 
             <div class="field">
@@ -4294,6 +4422,11 @@ function openBookingForm(bookingId, presetDate, prefillData){
 
 async function submitBookingForm(evt, editingId){
   evt.preventDefault();
+  const startField=document.getElementById('f_time');
+  syncStartTimeRequired();
+  if(startField.required && !startField.value){showFieldError(startField,'Please enter the start time.');startField.focus();return false;}
+  const priceField=document.getElementById('f_price');
+  if(document.getElementById('f_package').value !== 'Trial Make Up' && !(Number(priceField.value.replace(/[^0-9]/g,''))>0)){showFieldError(priceField,'Please enter a package price greater than zero.');priceField.focus();return false;}
   try{
   const data = {
     date: document.getElementById('f_openDate')?.checked ? '' : document.getElementById('f_date').value,
@@ -4353,6 +4486,7 @@ async function submitBookingForm(evt, editingId){
     internalNotes: document.getElementById('f_internalNotes').value.trim(),
   };
 
+  if(document.querySelector('#paymentEntries .payment-entry') && !requirePackagePrice())return false;
   try { data.payments = readPaymentEntries(); } catch(error){showToast(error.message);return false;}
   data.depositAmount = data.payments.reduce((sum,p)=>sum+p.amount,0);
   const due = bookingTotalDue(data);
@@ -4425,6 +4559,45 @@ async function submitBookingForm(evt, editingId){
   return false;
 }
 
+function reactivateCancelledBooking(id){
+ const b=bookings.find(x=>x.id===id);
+ if(!b || !b.cancelled)return;
+ customConfirm('Are all booking details still the same? Select Yes to reactivate this booking.',()=>updateCancelledBooking(id,false));
+}
+function deleteCancelledBooking(id){
+ const b=bookings.find(x=>x.id===id);
+ if(!b || !b.cancelled)return;
+ customConfirm('Are you sure you want to delete the booking for '+b.clientName+'? This booking and its payment history will be permanently removed from all app records.',()=>updateCancelledBooking(id,true));
+}
+let cancelledBookingUpdatePending=false;
+async function updateCancelledBooking(id,remove){
+ if(cancelledBookingUpdatePending)return;
+ const b=bookings.find(x=>x.id===id);
+ if(!b || !b.cancelled)return;
+ cancelledBookingUpdatePending=true;
+ try{
+  // Update only this booking in the latest saved list, preserving concurrent changes.
+  const ref=bookingsDocRef();
+  await ref.firestore.runTransaction(async transaction=>{
+   const snap=await transaction.get(ref);
+   const stored=snap.data() || {};
+   const list=stored.bookings || [];
+   const target=list.find(x=>x.id===id);
+   if(!target || !target.cancelled)throw new Error('Booking status has changed.');
+   const next=remove?list.filter(x=>x.id!==id):list.map(x=>x.id===id?{...x,cancelled:false,cancelReason:'',done:false}:x);
+   transaction.set(ref,{bookings:next,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+  });
+  bookings=remove?bookings.filter(x=>x.id!==id):bookings.map(x=>x.id===id?{...x,cancelled:false,cancelReason:'',done:false}:x);
+  closeModal();
+  refreshAll();
+  if(typeof renderHistoryList==='function')renderHistoryList();
+  if(currentView==='report')openReportBookingHistory();
+  else if(currentView==='home' && b.date)openDayModal(b.date);
+  showToast(remove?'Booking berhasil dihapus.':'Booking aktif kembali.');
+ }catch(error){console.error(error);showToast('Perubahan belum tersimpan. Periksa koneksi dan status booking, lalu coba lagi.');}
+ finally{cancelledBookingUpdatePending=false;}
+}
+
 function cancelBooking(id){
   const b = bookings.find(x => x.id === id);
   if(!b) return;
@@ -4434,7 +4607,7 @@ function cancelBooking(id){
         <div class="modal-head">
           <div>
             <h2>Cancel Booking</h2>
-            <div class="sub">${escapeHtml(b.clientName)}</div>
+            <div class="sub cancel-booking-client">${escapeHtml(b.clientName)} - ${escapeHtml((PACKAGES[b.package] || PACKAGES.Others).label)}</div>
           </div>
           <button class="modal-close" onclick="closeModal()">✕</button>
         </div>
@@ -4476,7 +4649,7 @@ async function markDone(id){
     showToast('Booking can only be marked Done after the finish time.');
     return;
   }
-  if(b.depositStage !== 'Full Payment'){
+  if(!isTrialMakeUp(b) && b.depositStage !== 'Full Payment'){
     showToast('This booking cannot be marked Done until it is Full Payment.');
     return;
   }
@@ -4499,6 +4672,7 @@ function ensureInvoiceNumber(b){
 }
 
 function openInvoice(bookingId, forcePelunasan){
+  if(isTrialMakeUp(bookings.find(x=>x.id===bookingId)||{}))return;
   const b = bookings.find(x => x.id === bookingId);
   if(!b) return;
   const invNumber = ensureInvoiceNumber(b);
@@ -4514,7 +4688,7 @@ function openInvoice(bookingId, forcePelunasan){
   let paidRow = '';
   let remaining = totalDue;
   let statusLabel = 'No payment yet';
-  const isLunas = b.depositStage === 'Full Payment';
+  const isLunas = !packagePriceMissing(b) && b.depositStage === 'Full Payment';
   const invoiceTitle = forcePelunasan ? 'Final Payment Invoice' : (isLunas ? 'Paid in Full Invoice' : 'Invoice');
 
   if(isLunas){
@@ -4561,9 +4735,8 @@ function openInvoice(bookingId, forcePelunasan){
                 <div>Invoice Date: <b>${formatDateLong(toDateStr(today.getFullYear(), today.getMonth(), today.getDate()))}</b></div>
               </div>
             </div>
-            <div class="inv-hr"></div>
             <div class="inv-block-label">Billed To</div>
-            <div style="font-size:14px;line-height:1.6;">
+            <div class="invoice-client" style="font-size:14px;line-height:1.6;">
               <b>${escapeHtml(b.clientName)}</b><br>
               ${escapeHtml(b.phone) || '-'}<br>
               ${escapeHtml(b.venue) || '-'}<br>
@@ -4571,7 +4744,7 @@ function openInvoice(bookingId, forcePelunasan){
             </div>
 
             <div class="inv-block-label" style="margin-top:20px">Service Details</div><table class="inv-table">
-              <tr><td>${pkg.label}${(Number(b.totalPax)||1) > 1 ? ` × ${b.totalPax} pax` : ''}</td><td class="r">${formatRupiah(bookingBasePrice(b))}</td></tr>
+              <tr><td>${pkg.label}${(Number(b.totalPax)||1) > 1 ? ` × ${b.totalPax} pax` : ''}</td><td class="r">${packagePriceMissing(b) ? packagePriceWarning() : formatRupiah(bookingBasePrice(b))}</td></tr>
               ${extraRows}
             </table>
 
@@ -4611,13 +4784,14 @@ async function buildInvoiceCanvas(bookingId, forcePelunasan){
 
   const invNumber  = ensureInvoiceNumber(b);
   const pkg        = PACKAGES[b.package] || PACKAGES.Others;
+  if(packagePriceMissing(b)){ payStatus = payStatusShort = 'Price not set'; payColor = '#b42336'; }
   const pax        = Number(b.totalPax) || 1;
   const paxNote    = pax > 1 ? ` × ${pax} pax` : '';
   const homeService= Number(b.homeServiceFee) || 0;
   const transport  = Number(b.transportFee)   || 0;
   const others     = Number(b.othersFee)      || 0;
   const totalDue   = bookingTotalDue(b);
-  const isLunas    = b.depositStage === 'Full Payment';
+  const isLunas    = !packagePriceMissing(b) && b.depositStage === 'Full Payment';
   const invoiceTitle = forcePelunasan ? 'Final Payment Invoice' : (isLunas ? 'Paid in Full Invoice' : 'Invoice');
   const todayStr   = formatDateLong(toDateStr(today.getFullYear(), today.getMonth(), today.getDate()));
   const eventDate  = formatDateLong(b.date) + (b.time ? `, at ${formatTimeRange(b)}` : '');
