@@ -1058,7 +1058,13 @@ body > .confirmation-overlay > .modal{margin:0!important;position:relative!impor
 #doneReminder h3{font-size:17px;margin:0 0 8px}#doneReminder p{font-size:13px;line-height:1.5;margin:0 0 12px}
 #doneReminder button{font:inherit;display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;padding:12px;margin-top:8px;border:1px solid #edcbb4;border-radius:13px;background:#fffaf080;color:inherit;text-align:left;cursor:pointer}
 #doneReminder button strong,#doneReminder button small{display:block}#doneReminder button small{margin-top:4px;font-size:12px}#doneReminder button>span:last-child{font-size:12px;flex-shrink:0}
-</style><style>.bc-btn.bc-btn-invoice:disabled{background:#e1e1e4!important;color:#939399!important;border-color:#d4d4d8!important;box-shadow:none!important;cursor:not-allowed;transform:none!important}</style><style id="trial-confirmation-centered-actions">#trialConfirmationSheet + .form-actions{display:flex;justify-content:center;align-items:center;gap:12px}#trialConfirmationSheet + .form-actions > button{flex:0 0 auto}</style></head>
+</style><style>.bc-btn.bc-btn-invoice:disabled{background:#e1e1e4!important;color:#939399!important;border-color:#d4d4d8!important;box-shadow:none!important;cursor:not-allowed;transform:none!important}</style><style id="trial-confirmation-centered-actions">#trialConfirmationSheet + .form-actions{display:flex;justify-content:center;align-items:center;gap:12px}#trialConfirmationSheet + .form-actions > button{flex:0 0 auto}</style><style id="uniform-calendar-cells">
+#calGrid{grid-template-columns:repeat(7,minmax(0,1fr))!important}
+#calGrid .cal-cell{height:108px!important;min-height:108px!important;max-height:108px!important;min-width:0!important;box-sizing:border-box;overflow:hidden}
+#calGrid .cal-bookings{min-width:0;overflow:hidden}
+#calGrid .cal-booking-name,#calGrid .cal-booking-more{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:16px!important;margin-top:0;margin-bottom:0}
+@media(max-width:600px){#calGrid .cal-cell{height:98px!important;min-height:98px!important;max-height:98px!important;padding:7px 5px!important}}
+</style></head>
 <body>
 
 <!-- ═══════════════ LOGIN SCREEN ═══════════════ -->
@@ -1773,7 +1779,7 @@ function renderCalendar(){
       const dayBookings = bookingsOnDate(dateStr)
         .sort((a, b) => timeKey(a).localeCompare(timeKey(b)) || a.clientName.localeCompare(b.clientName));
 
-      const maxShow = window.innerWidth < 480 ? 2 : 3;
+      const maxShow = 2;
       const shown = dayBookings.slice(0, maxShow);
       const extra = dayBookings.length - shown.length;
 
@@ -1818,7 +1824,7 @@ function renderDoneReminder(){
  if(!overdue.length){if(card)card.remove();return;}
  if(!card){card=document.createElement('section');card.id='doneReminder';card.setAttribute('role','status');}
  home.prepend(card);
- card.innerHTML=`<h3>Action required · ${overdue.length} booking${overdue.length===1?'':'s'} pending DONE</h3><p>These bookings are past their finish time, or started at least 3 hours ago with no finish time set. Please review them and mark them as DONE.</p>`+overdue.map(b=>`<button type="button" data-id="${escapeHtml(b.id)}"><span><strong>${escapeHtml(b.clientName)} — ${escapeHtml((PACKAGES[b.package]||PACKAGES.Others).label)}</strong><small>${escapeHtml(formatDateLong(b.date))} · ${escapeHtml(formatTimeRange(b)||b.time||'All Day')}</small></span><span>Review booking →</span></button>`).join('');
+ card.innerHTML=`<h3>Action required · ${overdue.length} booking${overdue.length===1?'':'s'} pending DONE</h3><p>Please review and mark completed bookings as DONE.</p>`+overdue.map(b=>`<button type="button" data-id="${escapeHtml(b.id)}"><span><strong>${escapeHtml(b.clientName)} — ${escapeHtml((PACKAGES[b.package]||PACKAGES.Others).label)}</strong><small>${escapeHtml(formatDateLong(b.date))} · ${escapeHtml(formatTimeRange(b)||b.time||'All Day')}</small></span><span>Review booking →</span></button>`).join('');
  card.querySelectorAll('button').forEach(button=>button.onclick=()=>{
   const b=bookings.find(x=>x.id===button.dataset.id);
   if(!b)return;
@@ -1835,7 +1841,7 @@ function renderHairdoReminder(){
   const missing = getMissingHairdoBookings();
   if(!missing.length){ if(card) card.remove(); return; }
   if(!card){ card = document.createElement('section'); card.id = 'hairdoReminder'; card.setAttribute('role','status'); home.prepend(card); }
-  card.innerHTML = `<h3>Hairdo not assigned · ${missing.length} booking</h3><p>Please assign a hairdo artist for bookings within the next 7 days, including today.</p>` + missing.map(b => `<button type="button" data-booking-id="${escapeHtml(b.id)}"><span><strong>${escapeHtml(b.clientName)}</strong><small>${escapeHtml(formatDateLong(b.date))} · ${escapeHtml(formatTimeRange(b) || 'All Day')}</small></span><span>Assign hairdo →</span></button>`).join('');
+  card.innerHTML = `<h3>Hairdo not assigned · ${missing.length} booking</h3><p>Please assign a hairdo artist for bookings within the next 7 days.</p>` + missing.map(b => `<button type="button" data-booking-id="${escapeHtml(b.id)}"><span><strong>${escapeHtml(b.clientName)}</strong><small>${escapeHtml(formatDateLong(b.date))} · ${escapeHtml(formatTimeRange(b) || 'All Day')}</small></span><span>Assign hairdo →</span></button>`).join('');
   card.querySelectorAll('button').forEach(button => button.addEventListener('click', () => openBookingForm(button.dataset.bookingId)));
 }
 
@@ -2072,7 +2078,12 @@ let historyHandledByFilter = 'all';
 let historyPackageFilter = 'all';
 let currentBookingsTab = 'upcoming';
 
+function currentHistoryMonth(){
+ const parts=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Jakarta',year:'numeric',month:'2-digit'}).formatToParts(new Date());
+ return parts.find(p=>p.type==='year').value+'-'+parts.find(p=>p.type==='month').value;
+}
 function switchBookingsTab(tab){
+  if(tab==='history')historyMonthFilter=currentHistoryMonth();
   currentBookingsTab = tab;
   const isUpcoming = tab === 'upcoming';
   document.getElementById('panelUpcoming').style.display = isUpcoming ? '' : 'none';
@@ -2083,6 +2094,7 @@ function switchBookingsTab(tab){
 }
 
 function openBookingHistory(){
+  historyMonthFilter=currentHistoryMonth();
   const overlay = document.createElement('div');
   overlay.className = 'preview-overlay';
   overlay.id = 'bhOverlay';
@@ -2153,7 +2165,7 @@ function renderHistoryList(){
   if(historyStageFilter !== 'All') filtered = filtered.filter(b => (b.depositStage||'No Deposit Yet') === historyStageFilter);
   if(historyHandledByFilter !== 'all') filtered = filtered.filter(b => (b.handledBy||'Nataliadesiandra') === historyHandledByFilter);
   if(historyPackageFilter !== 'all') filtered = filtered.filter(b => b.package === historyPackageFilter);
-  filtered.sort((a,b) => b.date.localeCompare(a.date) || timeKey(a).localeCompare(timeKey(b)));
+  filtered.sort((a,b) => a.date.localeCompare(b.date) || timeKey(a).localeCompare(timeKey(b)));
   const hcEl = document.getElementById('historyCount');
   if(hcEl) hcEl.textContent = filtered.length ? `${filtered.length} booking${filtered.length>1?'s':''}` : '';
 
@@ -2205,7 +2217,7 @@ function renderHistoryList(){
         <!-- Left info -->
         <div style="flex:1;min-width:0;">
           <div style="
-            font-size:14.5px;font-weight:700;color:var(--ink);
+            font-size:14.5px;font-weight:700;color:${b.cancelled?'#b42336':b.done?'#28734f':'var(--ink)'};
             line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
           ">${escapeHtml(b.clientName)}${cancelTag}</div>
           <div style="
@@ -2271,7 +2283,7 @@ function renderBookingsMonthOptions(){
 function renderHistoryMonthOptions(){
   const el = document.getElementById('historyMonthSelect');
   if(!el) return;
-  const months = [...new Set(bookings.filter(b=>b.date).map(b=>b.date.slice(0,7)))].sort();
+  const months = [...new Set([currentHistoryMonth(),...bookings.filter(b=>/^\d{4}-(0[1-9]|1[0-2])-\d{2}$/.test(b.date||'')).map(b=>b.date.slice(0,7))])].sort();
   el.innerHTML = `<option value="all">Month</option>` + months.map(m => {
     const [y, mm] = m.split('-').map(Number);
     return `<option value="${m}" ${historyMonthFilter===m?'selected':''}>${MONTHS_ID[mm-1]} ${y}</option>`;
@@ -3035,7 +3047,7 @@ function renderContentList(){
   if(!container || !dataLoaded) return;
   renderContentAlert();
 
-  let filtered = bookings.filter(b => (isPastDate(b.date) || b.done) && !b.cancelled);
+  let filtered = bookings.filter(b => (isPastDate(b.date) || b.done) && !b.cancelled && !['Content Posted','No Post'].includes(b.contentStatus));
 
   if(contentStatusFilter !== 'all'){
     filtered = filtered.filter(b => (b.contentStatus || CONTENT_STATUSES[0]) === contentStatusFilter);
