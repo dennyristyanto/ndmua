@@ -1064,7 +1064,32 @@ body > .confirmation-overlay > .modal{margin:0!important;position:relative!impor
 #calGrid .cal-bookings{min-width:0;overflow:hidden}
 #calGrid .cal-booking-name,#calGrid .cal-booking-more{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:16px!important;margin-top:0;margin-bottom:0}
 @media(max-width:600px){#calGrid .cal-cell{height:98px!important;min-height:98px!important;max-height:98px!important;padding:7px 5px!important}}
-</style></head>
+</style><style id="compact-calendar-hairdo">
+#calGrid .cal-cell{height:82px!important;min-height:82px!important;max-height:82px!important;padding:6px 5px!important;display:flex;flex-direction:column;justify-content:flex-start;gap:2px!important}
+#calGrid .cal-daynum{margin:0 0 2px!important;line-height:18px!important;min-height:18px!important}
+#calGrid .cal-bookings{margin:0!important;display:flex;flex-direction:column;gap:0!important}
+#calGrid .cal-booking-name,#calGrid .cal-booking-more{padding:0!important;margin:0!important;line-height:14px!important}
+.hairdo-payment-card{margin-bottom:16px}.hairdo-payment-card h3{margin:0 0 12px;color:#71533f}
+.hairdo-payment-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 0;border-top:1px solid #e7d7c7}.hairdo-payment-row>div{min-width:0;overflow-wrap:anywhere}.hairdo-payment-info{font-size:12px;margin-top:4px;color:#77695f}.hairdo-payment-toggle{display:flex;align-items:center;gap:8px;flex-shrink:0;font-size:12px}.hairdo-payment-toggle .switch{flex-shrink:0}
+#tabUpcoming,#tabHistory,#tabHairdo{min-width:0;padding-left:6px;padding-right:6px}
+</style><style id="hairdo-payment-refinement">
+#panelHairdo .hairdo-payment-card{padding:0!important;overflow:hidden;background:linear-gradient(135deg,#fffaf3,#f7f3f7)!important}
+#panelHairdo .hairdo-payment-card h3{margin:0;padding:15px 18px;background:linear-gradient(110deg,#f4dfc5,#eee7db 60%,#e7eee4);border-bottom:1px solid #e8d9c8;color:#71553f}
+#panelHairdo .hairdo-payment-row{margin:0 16px;padding:14px 0;gap:10px}
+#panelHairdo .hairdo-payment-row:nth-child(2){border-top:0}
+#panelHairdo .hairdo-payment-row>div{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 8px;flex:1}
+#panelHairdo .hairdo-payment-row strong{font-weight:400;font-size:13px}
+#panelHairdo .hairdo-payment-info{display:inline;margin:0;font-size:12px}
+#panelHairdo .hairdo-payment-toggle{gap:6px;font-size:11px;cursor:pointer}
+#panelHairdo .hairdo-payment-toggle .switch{position:relative;display:inline-block;width:44px;height:26px;flex:0 0 44px}
+#panelHairdo .switch input{position:absolute;inset:0;opacity:0;width:100%;height:100%;margin:0;z-index:2;cursor:pointer}
+#panelHairdo .switch-slider{position:absolute;inset:0;border-radius:99px;background:linear-gradient(135deg,#ded7d1,#eee8e3);border:1px solid #d1c7bd;box-shadow:inset 0 1px 3px #7c665b22;transition:background .2s}
+#panelHairdo .switch-slider:before{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:white;box-shadow:0 2px 4px #0002;transform:translateX(0);transition:transform .2s}
+#panelHairdo .switch input:checked+.switch-slider{background:linear-gradient(120deg,#79bc98,#a5d8b4);border-color:#78b895}
+#panelHairdo .switch input:checked+.switch-slider:before{transform:translateX(18px)}
+#panelHairdo .switch input:focus-visible+.switch-slider{outline:2px solid #a36b42;outline-offset:3px}
+#panelHairdo .switch input:disabled{cursor:wait}
+</style><style>#hairdoPaymentReminder{padding:16px 18px;margin-bottom:16px;border:1px solid #efc0bd;border-radius:20px;background:linear-gradient(120deg,#fbe0df,#fff0df);color:#934b46}#hairdoPaymentReminder p{margin:7px 0 10px;font-size:12px;line-height:1.4}#hairdoPaymentReminder .btn{font-size:12px}</style><style>.hairdo-overdue-list{display:flex;flex-wrap:wrap;gap:7px 10px}.hairdo-overdue-list>span{padding:5px 9px;border-radius:10px;background:#fff8;border:1px solid #edc5be;font-size:12px;max-width:100%;overflow-wrap:anywhere}</style></head>
 <body>
 
 <!-- ═══════════════ LOGIN SCREEN ═══════════════ -->
@@ -1178,8 +1203,10 @@ body > .confirmation-overlay > .modal{margin:0!important;position:relative!impor
     
     <div style="display:flex;gap:8px;margin-bottom:12px;">
       <button class="tab-toggle-btn" id="tabUpcoming" onclick="switchBookingsTab('upcoming')" style="flex:1;">All Bookings</button>
-      <button class="tab-toggle-btn tab-toggle-inactive" id="tabHistory" onclick="switchBookingsTab('history')" style="flex:1;">Booking History</button>
+      <button class="tab-toggle-btn tab-toggle-inactive" id="tabHistory" onclick="switchBookingsTab('history')" style="flex:1;">Booking History</button><button class="tab-toggle-btn tab-toggle-inactive" id="tabHairdo" onclick="switchBookingsTab('hairdo')" style="flex:1">Hairdo</button>
     </div>
+    <section id="hairdoPaymentReminder" role="status" style="display:none"></section>
+    <div id="panelHairdo" style="display:none"></div>
     <div id="panelUpcoming">
       <div class="list-card" style="margin-bottom:16px;">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
@@ -2083,14 +2110,65 @@ function currentHistoryMonth(){
  return parts.find(p=>p.type==='year').value+'-'+parts.find(p=>p.type==='month').value;
 }
 function switchBookingsTab(tab){
-  if(tab==='history')historyMonthFilter=currentHistoryMonth();
-  currentBookingsTab = tab;
-  const isUpcoming = tab === 'upcoming';
-  document.getElementById('panelUpcoming').style.display = isUpcoming ? '' : 'none';
-  document.getElementById('panelHistory').style.display = isUpcoming ? 'none' : '';
-  document.getElementById('tabUpcoming').className = isUpcoming ? 'tab-toggle-btn' : 'tab-toggle-btn tab-toggle-inactive';
-  document.getElementById('tabHistory').className = isUpcoming ? 'tab-toggle-btn tab-toggle-inactive' : 'tab-toggle-btn';
-  if(!isUpcoming) renderHistoryList();
+ if(tab==='history')historyMonthFilter=currentHistoryMonth();
+ currentBookingsTab=tab;
+ renderHairdoPaymentReminder();
+ for(const [key,suffix] of [['upcoming','Upcoming'],['history','History'],['hairdo','Hairdo']]){
+  document.getElementById('panel'+suffix).style.display=tab===key?'':'none';
+  document.getElementById('tab'+suffix).className='tab-toggle-btn'+(tab===key?'':' tab-toggle-inactive');
+ }
+ if(tab==='hairdo')renderHairdoPayments();else if(tab==='history')renderHistoryList();else renderBookingsList();
+}
+function getOverdueHairdoPayments(now=new Date()){
+ return getHairdoPaymentGroups().flatMap(g=>g.items).filter(b=>{
+  if(!(Number(b.hairdoPrice)>0))return false;
+  let end=bookingFinishDeadline(b);
+  // Legacy bookings without times use the end of their recorded event date.
+  if(!end && /^\d{4}-(0[1-9]|1[0-2])-\d{2}$/.test(b.date||'')){
+   const [y,m,d]=b.date.split('-').map(Number);end=new Date(y,m-1,d+1);
+  }
+  if(!end)return false;
+  const due=new Date(end);due.setDate(due.getDate()+7);
+  return now>due;
+ });
+}
+function renderHairdoPaymentReminder(){
+ const host=document.getElementById('hairdoPaymentReminder');if(!host)return;
+ if(!dataLoaded||currentBookingsTab!=='hairdo'){host.style.display='none';return;}
+ const overdue=getOverdueHairdoPayments();
+ host.style.display=overdue.length?'':'none';
+ const entries=[...new Map(overdue.map(b=>[(b.hairdo||'').trim().toLowerCase()+'|'+b.date,b])).values()];
+ host.innerHTML=overdue.length?`<strong>Overdue hairdo payments · ${overdue.length}</strong><p>Please settle hairdo payments overdue by more than 7 days.</p><div class="hairdo-overdue-list">${entries.map(b=>`<span>${escapeHtml(b.hairdo.trim())} ${escapeHtml(new Date(b.date+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'}))}</span>`).join('')}</div>`:'';
+}
+
+setInterval(()=>{if(currentView==='bookings')renderHairdoPaymentReminder();},30000);
+function getHairdoPaymentGroups(){
+ const groups=new Map();
+ bookings.filter(b=>!b.cancelled&&!b.hairdoPaid&&b.hairdo&&b.hairdo.trim()&&b.hairdo.trim()!=='-').forEach(b=>{
+  const name=b.hairdo.trim().replace(/\s+/g,' '),key=name.toLocaleLowerCase();
+  if(!groups.has(key))groups.set(key,{name,items:[]});groups.get(key).items.push(b);
+ });
+ return [...groups.values()].sort((a,b)=>a.name.localeCompare(b.name)).map(g=>({...g,items:g.items.sort((a,b)=>(a.date||'9999').localeCompare(b.date||'9999')||(a.clientName||'').localeCompare(b.clientName||''))}));
+}
+function renderHairdoPayments(){
+ renderHairdoPaymentReminder();
+ const host=document.getElementById('panelHairdo');if(!host||!dataLoaded)return;
+ const groups=getHairdoPaymentGroups();
+ host.innerHTML=groups.length?groups.map(g=>`<section class="list-card hairdo-payment-card"><h3>${escapeHtml(g.name)}</h3>${g.items.map(b=>`<div class="hairdo-payment-row"><div><strong>${escapeHtml(b.clientName)} (${escapeHtml((PACKAGES[b.package]||PACKAGES.Others).label)})</strong><div class="hairdo-payment-info">${escapeHtml(b.date?new Date(b.date+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'Open Date')} · ${formatRupiah(Number(b.hairdoPrice)||0)}</div></div><label class="hairdo-payment-toggle"><span class="switch"><input type="checkbox" role="switch" aria-label="Hairdo payment for ${escapeHtml(b.clientName)}" data-booking-id="${escapeHtml(b.id)}" ${b.hairdoPaid?'checked':''}><span class="switch-slider"></span></span></label></div>`).join('')}</section>`).join(''):'<div class="empty-hint">No pending hairdo payments.</div>';
+ host.querySelectorAll('input[data-booking-id]').forEach(input=>input.onchange=()=>saveHairdoPayment(input));
+}
+async function saveHairdoPayment(input){
+ const id=input.dataset.bookingId,paid=input.checked;input.disabled=true;
+ try{
+  const ref=bookingsDocRef();
+  await ref.firestore.runTransaction(async tx=>{
+   const snap=await tx.get(ref);const list=(snap.data()||{}).bookings||[];
+   if(!list.some(b=>b.id===id&&!b.cancelled))throw new Error('Booking unavailable');
+   tx.set(ref,{bookings:list.map(b=>b.id===id?{...b,hairdoPaid:paid}:b),updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+  });
+  const b=bookings.find(b=>b.id===id);if(b)b.hairdoPaid=paid;
+  renderHairdoPayments();
+ }catch(error){console.error(error);input.checked=!paid;input.disabled=false;showToast('Could not save hairdo payment. Please try again.');}
 }
 
 function openBookingHistory(){
@@ -2365,6 +2443,8 @@ function onBookingsPackageChange(el){
 }
 
 function renderBookingsList(){
+ renderHairdoPaymentReminder();
+  if(currentBookingsTab==='hairdo')renderHairdoPayments();
   const container = document.getElementById('bookingsListContainer') || document.getElementById('bookingsList');
   if(!container || !dataLoaded) return;
   renderBookingsMonthOptions();
@@ -3255,9 +3335,10 @@ function bookingCardHtml(b){
           ${b.cancelled ? '' : `<div class="bc-actions-row">
             <button class="bc-btn bc-btn-invoice" ${isTrialMakeUp(b)?'disabled aria-disabled="true"':''} onclick="openInvoice('${b.id}')">Invoice</button>
             <button class="bc-btn bc-btn-confirm" onclick="openBookingConfirmation('${b.id}')">Confirmation</button>
+            <button class="bc-btn bc-btn-preview" onclick="openBookingPreview('${b.id}')">Preview</button>
           </div>`}
           <div class="bc-actions-row">
-            <button class="bc-btn bc-btn-preview" onclick="openBookingPreview('${b.id}')">Preview</button>
+            ${b.cancelled ? `<button class="bc-btn bc-btn-preview" onclick="openBookingPreview('${b.id}')">Preview</button>` : `<button class="bc-btn bc-btn-edit" onclick="duplicateBooking('${b.id}')">Duplicate</button>`}
             ${b.cancelled ? `<button class="bc-btn bc-btn-cancel" onclick="deleteCancelledBooking('${b.id}')">Delete</button><button class="bc-btn bc-btn-edit" onclick="reactivateCancelledBooking('${b.id}')">Reactivate</button>` : `<button class="bc-btn bc-btn-edit" onclick="openBookingForm('${b.id}')">Edit</button><button class="bc-btn bc-btn-cancel" onclick="cancelBooking('${b.id}')">Cancel</button>`}
           </div>
           ${b.cancelled ? '' : b.done
@@ -4205,6 +4286,22 @@ function paymentHistoryHtml(b,large=false){
  </section>`;
 }
 
+function duplicateBooking(id){
+ const source=bookings.find(b=>b.id===id);if(!source)return;
+ const copy={date:'',time:'',timeEnd:'',allDay:false,payments:[],depositAmount:0,depositStage:''};
+ for(const key of ['package','clientName','phone','venue','hairdo','price','note','internalNotes','retouch','igAccount','age','totalPax','look','hairdoPrice','homeServiceFee','transportFee','othersFee','teamAllocation','handledBy','discountType','discountValue']){
+  if(source[key]!==undefined)copy[key]=source[key];
+ }
+ openBookingForm(null,null,copy);
+ const form=document.getElementById('bookingForm');form.dataset.duplicate='true';
+ const open=document.getElementById('f_openDate');open.checked=false;open.disabled=true;
+ toggleOpenDate(false);
+ const allDay=document.getElementById('f_allDay');allDay.checked=false;allDay.disabled=true;
+ document.getElementById('f_time').required=true;
+ const header=document.querySelector('#bookingFormOverlay .preview-modal-head');
+ if(header){header.querySelector('h2').textContent='Duplicate Booking';header.querySelector('.sub').textContent='Choose a date and start time for this new booking.';}
+ document.getElementById('f_date').focus();
+}
 function openBookingForm(bookingId, presetDate, prefillData){
   const editing = bookingId ? bookings.find(b => b.id === bookingId) : null;
   let b = editing || {
@@ -4434,6 +4531,10 @@ function openBookingForm(bookingId, presetDate, prefillData){
 
 async function submitBookingForm(evt, editingId){
   evt.preventDefault();
+  if(document.getElementById('bookingForm')?.dataset.duplicate==='true'){
+   const date=document.getElementById('f_date'),time=document.getElementById('f_time');
+   if(!date.value || !time.value){const field=!date.value?date:time;showFieldError(field,'Please enter a new booking date and start time.');field.focus();return false;}
+  }
   const startField=document.getElementById('f_time');
   syncStartTimeRequired();
   if(startField.required && !startField.value){showFieldError(startField,'Please enter the start time.');startField.focus();return false;}
