@@ -1089,7 +1089,11 @@ body > .confirmation-overlay > .modal{margin:0!important;position:relative!impor
 #panelHairdo .switch input:checked+.switch-slider:before{transform:translateX(18px)}
 #panelHairdo .switch input:focus-visible+.switch-slider{outline:2px solid #a36b42;outline-offset:3px}
 #panelHairdo .switch input:disabled{cursor:wait}
-</style><style>#hairdoPaymentReminder{padding:16px 18px;margin-bottom:16px;border:1px solid #efc0bd;border-radius:20px;background:linear-gradient(120deg,#fbe0df,#fff0df);color:#934b46}#hairdoPaymentReminder p{margin:7px 0 10px;font-size:12px;line-height:1.4}#hairdoPaymentReminder .btn{font-size:12px}</style><style>.hairdo-overdue-list{display:flex;flex-wrap:wrap;gap:7px 10px}.hairdo-overdue-list>span{padding:5px 9px;border-radius:10px;background:#fff8;border:1px solid #edc5be;font-size:12px;max-width:100%;overflow-wrap:anywhere}</style></head>
+</style><style>#hairdoPaymentReminder{padding:16px 18px;margin-bottom:16px;border:1px solid #efc0bd;border-radius:20px;background:linear-gradient(120deg,#fbe0df,#fff0df);color:#934b46}#hairdoPaymentReminder p{margin:7px 0 10px;font-size:12px;line-height:1.4}#hairdoPaymentReminder .btn{font-size:12px}</style><style>.hairdo-overdue-list{display:flex;flex-wrap:wrap;gap:7px 10px}.hairdo-overdue-list>span{padding:5px 9px;border-radius:10px;background:#fff8;border:1px solid #edc5be;font-size:12px;max-width:100%;overflow-wrap:anywhere}</style><style id="preview-duplicate-and-cancel-reason">
+.preview-footer-actions{display:flex;gap:10px}.preview-footer-actions>button{flex:1;min-width:0;padding-left:8px;padding-right:8px}
+.preview-footer-actions>button:disabled{background:#e1e1e4!important;color:#94949a!important;border-color:#d3d3d8!important;box-shadow:none!important;cursor:not-allowed;transform:none!important}
+.bc-cancel-reason{margin-top:12px;padding:12px 14px;border-radius:14px;background:linear-gradient(120deg,#fbe1e5,#fff0e8);color:#934653;border:1px solid #edc8ce;font-size:12px;line-height:1.5}.bc-cancel-reason>div{margin-top:4px;white-space:pre-wrap;overflow-wrap:anywhere}
+</style></head>
 <body>
 
 <!-- ═══════════════ LOGIN SCREEN ═══════════════ -->
@@ -3325,6 +3329,7 @@ function bookingCardHtml(b){
           <span class="bc-label">Hairdo</span><span class="bc-colon">:</span><span class="bc-val">${escapeHtml(b.hairdo) || '-'}${b.hairdoPrice ? ' · ' + formatRupiah(b.hairdoPrice) : ''}</span>
         </div>
         ${b.note ? `<div class="bc-note">${escapeHtml(b.note.replace(/^\s*\|\s*/, ''))}</div>` : ''}
+        ${b.cancelled ? `<div class="bc-cancel-reason"><strong>Cancellation Reason</strong><div>${escapeHtml(b.cancelReason || 'No reason given')}</div></div>` : ''}
       </div>
       <div class="bc-price-area">
         <div class="bc-price">
@@ -3465,7 +3470,8 @@ function openBookingPreview(bookingId, source){
       <div class="preview-modal-body">
         <div class="list-card" style="padding:4px 16px;">${rowsHtml}</div>
         <div class="preview-footer-actions">
-          ${_source === 'history' ? `<button type="button" class="btn btn-primary" onclick="editBookingFromPreview('${b.id}')">Edit</button>` : ''}
+          <button type="button" class="btn btn-primary" ${isBookingBeforeToday(b)?'disabled aria-disabled="true"':''} onclick="editBookingFromPreview('${b.id}')">Edit</button>
+          <button type="button" class="btn btn-primary" onclick="duplicateBookingFromPreview('${b.id}')">Duplicate</button>
           <button type="button" class="btn btn-ghost" onclick="closePreviewModal()">Close</button>
         </div>
       </div>
@@ -3476,7 +3482,19 @@ function openBookingPreview(bookingId, source){
   document.body.classList.add('preview-open');
 }
 
+function isBookingBeforeToday(b,now=new Date()){
+ if(!b||!b.date)return false;
+ const parts=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Jakarta',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(now);
+ const value=type=>parts.find(p=>p.type===type).value;
+ return b.date<value('year')+'-'+value('month')+'-'+value('day');
+}
+function duplicateBookingFromPreview(id){
+ closePreviewModal();
+ document.getElementById('bhOverlay')?.remove();
+ duplicateBooking(id);
+}
 function editBookingFromPreview(bookingId){
+  if(isBookingBeforeToday(bookings.find(b=>b.id===bookingId)))return;
   closePreviewModal();
   const historyOverlay = document.getElementById('bhOverlay');
   if(historyOverlay){ historyOverlay.remove(); document.body.classList.remove('preview-open'); }
