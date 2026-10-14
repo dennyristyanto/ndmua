@@ -1093,6 +1093,13 @@ body > .confirmation-overlay > .modal{margin:0!important;position:relative!impor
 .preview-footer-actions{display:flex;gap:10px}.preview-footer-actions>button{flex:1;min-width:0;padding-left:8px;padding-right:8px}
 .preview-footer-actions>button:disabled{background:#e1e1e4!important;color:#94949a!important;border-color:#d3d3d8!important;box-shadow:none!important;cursor:not-allowed;transform:none!important}
 .bc-cancel-reason{margin-top:12px;padding:12px 14px;border-radius:14px;background:linear-gradient(120deg,#fbe1e5,#fff0e8);color:#934653;border:1px solid #edc8ce;font-size:12px;line-height:1.5}.bc-cancel-reason>div{margin-top:4px;white-space:pre-wrap;overflow-wrap:anywhere}
+</style><style>
+#bookingFormOverlay #f_hairdo.has-value{background:#fff0dc!important}
+.package-retouch-row{display:grid;grid-template-columns:minmax(0,1fr) 80px;gap:12px;align-items:start}
+.package-retouch-row .switch{margin-top:10px;display:block}
+</style><style>
+.confirmation-details{font-size:14px;line-height:1.5;color:#756052;margin:0 0 20px;overflow-wrap:anywhere}
+#panelHairdo .hairdo-date-past strong,#panelHairdo .hairdo-date-past .hairdo-payment-info{color:#287d59}
 </style></head>
 <body>
 
@@ -1723,7 +1730,27 @@ function escapeHtml(s){
 function timeKey(b){ return b.time || '99:99'; }
 
 /* ================= CUSTOM DIALOGS (no native confirm/alert) ================= */
-function customConfirm(message, onYes, onNo){
+function toggleRetouchFields(){
+ const enabled=document.getElementById('f_retouch').checked;
+ document.getElementById('retouchTimes').style.display=enabled?'grid':'none';
+ ['f_retouchStart','f_retouchEnd'].forEach(id=>document.getElementById(id).required=enabled);
+}
+function bookingScheduleIntervals(b){
+ if(!b.date)return [];
+ const day=new Date(b.date+'T00:00:00').getTime();if(!Number.isFinite(day))return [];
+ const minutes=t=>/^\d{2}:\d{2}$/.test(t||'')?Number(t.slice(0,2))*60+Number(t.slice(3)):null;
+ const range=(start,end,retouch=false)=>{const a=minutes(start);if(a===null)return null;let z=minutes(end);if(z===null)z=a+120;if(z<=a)z+=1440;return {start:day+a*60000,end:day+z*60000,retouch};};
+ const ranges=[];
+ if(b.allDay)ranges.push({start:day,end:day+86400000,retouch:false});else {const r=range(b.time,b.timeEnd);if(r)ranges.push(r);}
+ if(b.retouch==='Yes'){const r=range(b.retouchStart,b.retouchEnd,true);if(r)ranges.push(r);}
+ return ranges;
+}
+function findRetouchConflict(data,excludeId){
+ const proposed=bookingScheduleIntervals(data);
+ return bookings.find(b=>b.id!==excludeId&&!b.cancelled&&bookingScheduleIntervals(b).some(old=>proposed.some(next=>(old.retouch||next.retouch)&&next.start<old.end&&old.start<next.end)));
+}
+
+function customConfirm(message, onYes, onNo, confirmLabel = "Yes", details = ""){
   const div = document.createElement('div');
   div.className = 'overlay confirmation-overlay';
   div.style.zIndex = '2147483647';
@@ -1731,9 +1758,10 @@ function customConfirm(message, onYes, onNo){
     <div class="modal w-sm">
       <div class="modal-body" style="padding-top:24px;">
         <p style="font-size:14px;font-weight:700;color:#000;margin:0 0 18px;line-height:1.5;">${escapeHtml(message)}</p>
+        ${details ? `<p class="confirmation-details">${escapeHtml(details)}</p>` : ''}
         <div class="form-actions">
           <button type="button" class="btn btn-ghost" style="flex:1">Cancel</button>
-          <button type="button" class="btn btn-primary" style="flex:1">Yes</button>
+          <button type="button" class="btn btn-primary" style="flex:1">${escapeHtml(confirmLabel)}</button>
         </div>
       </div>
     </div>
@@ -2158,10 +2186,18 @@ function renderHairdoPayments(){
  renderHairdoPaymentReminder();
  const host=document.getElementById('panelHairdo');if(!host||!dataLoaded)return;
  const groups=getHairdoPaymentGroups();
- host.innerHTML=groups.length?groups.map(g=>`<section class="list-card hairdo-payment-card"><h3>${escapeHtml(g.name)}</h3>${g.items.map(b=>`<div class="hairdo-payment-row"><div><strong>${escapeHtml(b.clientName)} (${escapeHtml((PACKAGES[b.package]||PACKAGES.Others).label)})</strong><div class="hairdo-payment-info">${escapeHtml(b.date?new Date(b.date+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'Open Date')} · ${formatRupiah(Number(b.hairdoPrice)||0)}</div></div><label class="hairdo-payment-toggle"><span class="switch"><input type="checkbox" role="switch" aria-label="Hairdo payment for ${escapeHtml(b.clientName)}" data-booking-id="${escapeHtml(b.id)}" ${b.hairdoPaid?'checked':''}><span class="switch-slider"></span></span></label></div>`).join('')}</section>`).join(''):'<div class="empty-hint">No pending hairdo payments.</div>';
+ host.innerHTML=groups.length?groups.map(g=>`<section class="list-card hairdo-payment-card"><h3>${escapeHtml(g.name)}</h3>${g.items.map(b=>`<div class="hairdo-payment-row${isBookingBeforeToday(b) ? ' hairdo-date-past' : ''}"><div><strong>${escapeHtml(b.clientName)} (${escapeHtml((PACKAGES[b.package]||PACKAGES.Others).label)})</strong><div class="hairdo-payment-info">${escapeHtml(b.date?new Date(b.date+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'Open Date')} · ${formatRupiah(Number(b.hairdoPrice)||0)}</div></div><label class="hairdo-payment-toggle"><span class="switch"><input type="checkbox" role="switch" aria-label="Hairdo payment for ${escapeHtml(b.clientName)}" data-booking-id="${escapeHtml(b.id)}" ${b.hairdoPaid?'checked':''}><span class="switch-slider"></span></span></label></div>`).join('')}</section>`).join(''):'<div class="empty-hint">No pending hairdo payments.</div>';
  host.querySelectorAll('input[data-booking-id]').forEach(input=>input.onchange=()=>saveHairdoPayment(input));
 }
-async function saveHairdoPayment(input){
+function saveHairdoPayment(input){
+ if(!input.checked)return commitHairdoPayment(input);
+ const booking=bookings.find(b=>b.id===input.dataset.bookingId);
+ if(!booking){input.checked=false;return;}
+ const details=`${booking.hairdo || '-'} - ${(PACKAGES[booking.package]||PACKAGES.Others).label} - ${formatRupiah(Number(booking.hairdoPrice)||0)}`;
+ input.disabled=true;
+ customConfirm('Confirm this hairdo payment as paid?',()=>{input.checked=true;commitHairdoPayment(input);},()=>{input.checked=false;input.disabled=false;},'Confirm',details);
+}
+async function commitHairdoPayment(input){
  const id=input.dataset.bookingId,paid=input.checked;input.disabled=true;
  try{
   const ref=bookingsDocRef();
@@ -4389,9 +4425,13 @@ function openBookingForm(bookingId, presetDate, prefillData){
               <div class="toggle-row"><span class="toggle-label">All Day<small>Blocks this date</small></span><label class="switch"><input type="checkbox" id="f_allDay" onchange="syncStartTimeRequired()" role="switch" aria-label="All Day (blocks this date)" ${b.allDay?'checked':''}><span class="switch-slider"></span></label></div>
             </div>
 
-            <div class="field">
-              <label>Package Type</label>
-              <select id="f_package" onchange="updateTeamCostVisibility()">${pkgOptions}</select>
+            <div class="package-retouch-row">
+              <div class="field"><label>Package Type</label><select id="f_package" onchange="updateTeamCostVisibility()">${pkgOptions}</select></div>
+              <div class="field"><label for="f_retouch">Retouch</label><label class="switch"><input type="checkbox" id="f_retouch" role="switch" ${b.retouch === 'Yes' ? 'checked' : ''} onchange="toggleRetouchFields()"><span class="switch-slider"></span></label></div>
+            </div>
+            <div class="row2" id="retouchTimes" style="display:${b.retouch === 'Yes' ? 'grid' : 'none'}">
+              <div class="field"><label>Retouch Time Start</label><input type="time" id="f_retouchStart" value="${escapeHtml(b.retouchStart || '')}"></div>
+              <div class="field"><label>Retouch Time Finish</label><input type="time" id="f_retouchEnd" value="${escapeHtml(b.retouchEnd || '')}"></div>
             </div>
 
             <div class="field">
@@ -4402,7 +4442,8 @@ function openBookingForm(bookingId, presetDate, prefillData){
             <div class="row2">
               <div class="field">
                 <label>Hairdo</label>
-                <input type="text" id="f_hairdo" value="${escapeHtml(b.hairdo || '')}" placeholder="Enter hairdo name" style="background:#fff;box-shadow:0 1px 4px rgba(60,30,10,0.08);" onfocus="this.style.borderColor='var(--rose)'" onblur="this.style.borderColor=''">
+                <input type="text" id="f_hairdo" list="hairdoOptions" value="${escapeHtml(b.hairdo || '')}" placeholder="Select or enter hairdo name" class="${(b.hairdo || '').trim() ? 'has-value' : ''}" oninput="this.classList.toggle('has-value',!!this.value.trim())">
+                <datalist id="hairdoOptions">${['Nikita','Tanti','Wiwied','Istifani','Vero','Nada','Mia'].map(name=>`<option value="${name}"></option>`).join('')}</datalist>
               </div>
               <div class="field">
                 <label>Allocation (internal only)</label>
@@ -4433,14 +4474,7 @@ function openBookingForm(bookingId, presetDate, prefillData){
                   <option value="International" ${b.look === 'International' ? 'selected' : ''}>International</option>
                 </select>
               </div>
-              <div class="field">
-                <label>Retouch</label>
-                <select id="f_retouch">
-                  <option value="" ${!b.retouch ? 'selected' : ''}>-</option>
-                  <option value="Yes" ${b.retouch === 'Yes' ? 'selected' : ''}>Yes</option>
-                  <option value="No" ${b.retouch === 'No' ? 'selected' : ''}>No</option>
-                </select>
-              </div>
+
             </div>
 
             <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px;margin-bottom:14px;">
@@ -4575,7 +4609,9 @@ async function submitBookingForm(evt, editingId){
     phone: '08' + document.getElementById('f_phone_rest').value.trim(),
     venue: document.getElementById('f_venue').value.trim(),
     look: document.getElementById('f_look').value,
-    retouch: document.getElementById('f_retouch').value,
+    retouch: document.getElementById('f_retouch').checked ? 'Yes' : 'No',
+    retouchStart: document.getElementById('f_retouch').checked ? document.getElementById('f_retouchStart').value : '',
+    retouchEnd: document.getElementById('f_retouch').checked ? document.getElementById('f_retouchEnd').value : '',
     igAccount: document.getElementById('f_igAccount').value.trim(),
     age: document.getElementById('f_age').value.trim(),
     totalPax: document.getElementById('f_totalPax').value ? Number(document.getElementById('f_totalPax').value) : null,
@@ -4642,6 +4678,12 @@ async function submitBookingForm(evt, editingId){
       showToast('Booking could not be saved. Please try again.');
     }
   };
+
+  if(data.retouch === 'Yes' && (!data.date || !data.retouchStart || !data.retouchEnd || data.retouchStart === data.retouchEnd)){
+    showToast('Please choose a date and valid retouch start and finish times.');return false;
+  }
+  const retouchConflict=findRetouchConflict(data,editingId);
+  if(retouchConflict){showToast(`Retouch schedule overlaps with ${retouchConflict.clientName}. Please choose another time.`);return false;}
 
   const finishConflictCheck = async () => {
     const conflict = data.date && data.time ? findScheduleConflict(data.date, data.time, data.timeEnd, editingId) : null;
