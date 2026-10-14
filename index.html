@@ -1735,6 +1735,9 @@ function toggleRetouchFields(){
  document.getElementById('retouchTimes').style.display=enabled?'grid':'none';
  ['f_retouchStart','f_retouchEnd'].forEach(id=>document.getElementById(id).required=enabled);
 }
+function retouchTimeLabel(b){
+ return b.retouchStart && b.retouchEnd ? `${b.retouchStart} - ${b.retouchEnd}` : 'To be confirmed';
+}
 function bookingScheduleIntervals(b){
  if(!b.date)return [];
  const day=new Date(b.date+'T00:00:00').getTime();if(!Number.isFinite(day))return [];
@@ -2544,6 +2547,12 @@ function isPastDate(dateStr){
 }
 
 function getReportMonths(){ return getBookingsMonths(); }
+function reportMonthLabel(month){
+ if(month==='all')return 'All months';
+ if(!month)return 'Open Date';
+ const [year,number]=month.split('-').map(Number);
+ return MONTHS_ID[number-1] ? `${MONTHS_ID[number-1]} ${year}` : 'Open Date';
+}
 
 function renderReportFilterChips(){
   const el = document.getElementById('reportFilterChips');
@@ -2551,11 +2560,7 @@ function renderReportFilterChips(){
 
   // "All months" pill — acts as month dropdown trigger
   const isAllMonth = reportMonthFilter === 'all';
-  const monthLabel = (() => {
-    if(isAllMonth) return 'All months';
-    const [y, mm] = reportMonthFilter.split('-').map(Number);
-    return `${MONTHS_ID[mm-1]} ${y}`;
-  })();
+  const monthLabel = reportMonthLabel(reportMonthFilter);
   const monthPill = `
     <button class="filter-chip rf-month-pill ${reportFilter === 'all' ? 'active' : ''}"
       onclick="rfToggleMonthDropdown(this)" id="rfMonthPillBtn"
@@ -2609,7 +2614,7 @@ function renderRfMonthMenu(){
   const opts = [['all','All months']].concat(
     months.map(m => {
       const [y, mm] = m.split('-').map(Number);
-      return [m, `${MONTHS_ID[mm-1]} ${y}`];
+      return [m, reportMonthLabel(m)];
     })
   );
   menu.innerHTML = opts.map(([val, lbl]) => {
@@ -2706,7 +2711,7 @@ function computeReportFinancials(filtered){
 function openReportBookingHistory(){
  const list=getReportFilteredBookings();
  const status={all:'All bookings',booked:'Past',upcoming:'Upcoming',cancelled:'Cancelled'}[reportFilter]||'All bookings';
- const month=reportMonthFilter==='all'?'All months':(()=>{const [y,m]=reportMonthFilter.split('-').map(Number);return MONTHS_ID[m-1]+' '+y;})();
+ const month=reportMonthLabel(reportMonthFilter);
  showModal(`<div class="overlay" onclick="if(event.target===this)closeModal()"><div class="modal w-lg"><div class="modal-head"><div><h2>Booking History</h2><div class="sub">${escapeHtml(month)} · ${status} · ${list.length} booking</div></div><button class="modal-close" onclick="closeModal()">✕</button></div><div class="modal-body">${list.length?list.map(b=>`<div style="margin-bottom:18px"><p style="font-weight:700">${escapeHtml(formatDateLong(b.date))}</p>${bookingCardHtml(b)}</div>`).join(''):'<p>No bookings for this filter.</p>'}</div></div></div>`);
 }
 function renderReport(){
@@ -3458,6 +3463,7 @@ function openBookingPreview(bookingId, source){
     ['Venue', b.venue || '-'],
     ['Look', b.look || '-'],
     ['Retouch', b.retouch || '-'],
+    ...(b.retouch === 'Yes' ? [['Retouch time', retouchTimeLabel(b)]] : []),
     ['IG Account', b.igAccount || '-'],
     ['Age', b.age || '-'],
     ['Total Pax', b.totalPax || '-'],
@@ -3681,6 +3687,7 @@ function openBookingConfirmation(bookingId){
           ">
             <div style="font-size:10.5px;font-weight:700;color:#8E8E93;margin-bottom:3px;">${escapeHtml(label)}</div>
             <div style="font-size:13px;font-weight:600;color:${label==='Payment'?payColor:'#1C1C1E'};line-height:1.35;">${escapeHtml(String(val))}</div>
+            ${label === 'Date' && b.retouch === 'Yes' ? `<div style="font-size:13px;font-weight:600;color:#1C1C1E;line-height:1.35;margin-top:6px;">Retouch at ${escapeHtml(retouchTimeLabel(b))}</div>` : ''}
           </div>`).join('')}
       </div>
 
