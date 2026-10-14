@@ -1100,6 +1100,15 @@ body > .confirmation-overlay > .modal{margin:0!important;position:relative!impor
 </style><style>
 .confirmation-details{font-size:14px;line-height:1.5;color:#756052;margin:0 0 20px;overflow-wrap:anywhere}
 #panelHairdo .hairdo-date-past strong,#panelHairdo .hairdo-date-past .hairdo-payment-info{color:#287d59}
+</style><style>
+.hairdo-picker{position:relative}
+#bookingFormOverlay #f_hairdo{padding-right:42px!important}
+.hairdo-dropdown-button{position:absolute;right:0;top:0;width:40px;height:46px;border:0;background:transparent;color:#765a43;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:0 12px 12px 0}
+.hairdo-dropdown-button:focus-visible{outline:2px solid #ed974d;outline-offset:-3px}
+.hairdo-options{position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:20;max-height:220px;overflow:auto;padding:5px;border:1px solid #eed3b1;border-radius:12px;background:#fffaf3;box-shadow:0 8px 20px #80532c26}
+.hairdo-options[hidden]{display:none}
+.hairdo-options button{display:block;width:100%;padding:10px 12px;text-align:left;font:inherit;font-size:14px;border:0;border-radius:8px;background:transparent;color:#584636;cursor:pointer}
+.hairdo-options button:hover,.hairdo-options button:focus-visible{background:#ffe9ce}
 </style></head>
 <body>
 
@@ -1730,6 +1739,18 @@ function escapeHtml(s){
 function timeKey(b){ return b.time || '99:99'; }
 
 /* ================= CUSTOM DIALOGS (no native confirm/alert) ================= */
+function toggleHairdoMenu(open){
+ const menu=document.getElementById('hairdoOptions');if(!menu)return;
+ const visible=typeof open==='boolean'?open:menu.hidden;
+ menu.hidden=!visible;
+ document.querySelector('.hairdo-dropdown-button')?.setAttribute('aria-expanded',String(visible));
+}
+function selectHairdoName(name){
+ const input=document.getElementById('f_hairdo');input.value=name;
+ input.classList.toggle('has-value',!!name.trim());toggleHairdoMenu(false);input.focus();
+}
+document.addEventListener('click',event=>{if(!event.target.closest('.hairdo-picker'))toggleHairdoMenu(false);});
+document.addEventListener('keydown',event=>{if(event.key==='Escape')toggleHairdoMenu(false);});
 function toggleRetouchFields(){
  const enabled=document.getElementById('f_retouch').checked;
  document.getElementById('retouchTimes').style.display=enabled?'grid':'none';
@@ -4449,8 +4470,11 @@ function openBookingForm(bookingId, presetDate, prefillData){
             <div class="row2">
               <div class="field">
                 <label>Hairdo</label>
-                <input type="text" id="f_hairdo" list="hairdoOptions" value="${escapeHtml(b.hairdo || '')}" placeholder="Select or enter hairdo name" class="${(b.hairdo || '').trim() ? 'has-value' : ''}" oninput="this.classList.toggle('has-value',!!this.value.trim())">
-                <datalist id="hairdoOptions">${['Nikita','Tanti','Wiwied','Istifani','Vero','Nada','Mia'].map(name=>`<option value="${name}"></option>`).join('')}</datalist>
+                <div class="hairdo-picker">
+                  <input type="text" id="f_hairdo" value="${escapeHtml(b.hairdo || '')}" placeholder="Select or enter name" autocomplete="off" class="${(b.hairdo || '').trim() ? 'has-value' : ''}" oninput="this.classList.toggle('has-value',!!this.value.trim())" onkeydown="if(event.key==='Escape')toggleHairdoMenu(false);if(event.key==='ArrowDown'){event.preventDefault();toggleHairdoMenu(true);document.querySelector('#hairdoOptions button').focus();}">
+                  <button type="button" class="hairdo-dropdown-button" aria-label="Choose hairdo artist" aria-expanded="false" aria-controls="hairdoOptions" onclick="toggleHairdoMenu()"><svg width="14" height="9" viewBox="0 0 14 9" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m1 1 6 6 6-6"/></svg></button>
+                  <div id="hairdoOptions" class="hairdo-options" hidden>${['Nikita','Tanti','Wiwied','Istifani','Vero','Nada','Mia'].map(name=>`<button type="button" onclick="selectHairdoName(this.textContent)">${name}</button>`).join('')}</div>
+                </div>
               </div>
               <div class="field">
                 <label>Allocation (internal only)</label>
