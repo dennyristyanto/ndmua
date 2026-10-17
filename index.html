@@ -1109,6 +1109,49 @@ body > .confirmation-overlay > .modal{margin:0!important;position:relative!impor
 .hairdo-options[hidden]{display:none}
 .hairdo-options button{display:block;width:100%;padding:10px 12px;text-align:left;font:inherit;font-size:14px;border:0;border-radius:8px;background:transparent;color:#584636;cursor:pointer}
 .hairdo-options button:hover,.hairdo-options button:focus-visible{background:#ffe9ce}
+</style><style>
+#bookingFormOverlay #f_teamName,#bookingFormOverlay #f_teamAllocation{background:#fff!important}
+#bookingFormOverlay #f_teamName.team-filled,#bookingFormOverlay #f_teamAllocation.team-filled{background:#fff0dc!important}
+#teamReminder{margin-bottom:20px;padding:20px;background:linear-gradient(125deg,#ffe0bc,#fff2dd);border:1px solid #efc99e}
+#teamReminder h3{margin:0 0 6px;color:#92501f;font-size:17px}#teamReminder p{font-size:13px;color:#876c52}
+#teamReminder button{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;margin-top:8px;padding:12px;border:1px solid #efd4b0;border-radius:12px;background:#fff5e6;color:#775032;font:inherit;text-align:left;cursor:pointer}#teamReminder small{display:block;margin-top:4px;font-size:12px}
+</style><style>.booking-card .bc-rows .bc-detail-bold{font-weight:700}</style><style>
+#previewOverlay .preview-value.preview-deposit{color:#b85b08}
+#previewOverlay .preview-balance-due .preview-label,#previewOverlay .preview-balance-due .preview-value{color:#c32d43}
+</style><style>#previewOverlay .preview-fully-paid .preview-value{color:#287d59}</style><style id="compact-booking-actions">
+.booking-card .bc-price-area{padding:12px}
+.booking-card .bc-actions{margin-top:0;gap:8px}
+.booking-card .bc-actions-row{gap:8px;padding:0}
+.booking-card .bc-actions-row .bc-btn{min-width:0;margin:0}
+.booking-card .bc-price + .bc-actions{margin-top:10px}
+</style><style>#contentListContainer .content-name .content-ig{font-size:11px;font-weight:400;color:var(--ink-soft);margin:0;overflow-wrap:anywhere}</style><style id="slim-content-cards">
+#contentListContainer .content-row{padding-top:8px!important;padding-bottom:8px!important}
+#contentListContainer .content-name{margin-bottom:0;overflow-wrap:anywhere}
+#contentListContainer .content-package-inline{font-size:11px;font-weight:400;color:var(--ink-soft)}
+#contentListContainer .content-date-status{margin-top:4px}
+</style><style id="aligned-content-and-compact-alerts">
+#contentListContainer .content-row-body{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(140px,40%);grid-template-rows:auto auto;column-gap:12px;row-gap:6px;align-items:center}
+#contentListContainer .content-row-left{grid-column:1;grid-row:1;min-width:0}
+#contentListContainer .content-date-status{display:contents}
+#contentListContainer .content-date{grid-column:1;grid-row:2}
+#contentListContainer .content-status-select{grid-column:2;grid-row:1 / 3;align-self:center;width:100%!important;max-width:100%!important;min-width:0!important;appearance:none;-webkit-appearance:none;padding:6px 30px 6px 12px!important;background-color:rgba(255,255,255,.42)!important;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='m1 1 5 5 5-5' fill='none' stroke='%23816b56' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E")!important;background-repeat:no-repeat!important;background-position:right 12px center!important;border-color:rgba(184,150,113,.3)!important;box-shadow:inset 0 1px 0 #ffffffb3,0 2px 6px #80532c0d;backdrop-filter:blur(8px)}
+.booking-card .bc-name{padding-left:14px;padding-right:14px}
+.booking-card .bc-rows{box-shadow:inset 0 1px 0 #ffffffb3,0 3px 10px #84604416}
+#doneReminder,#teamReminder,#hairdoReminder,#hairdoPaymentReminder{padding:10px 14px!important;margin-top:0!important;margin-bottom:10px!important;border-radius:16px}
+#doneReminder h3,#teamReminder h3,#hairdoReminder h3{margin:0 0 4px!important;font-size:15px;line-height:1.3}
+#doneReminder p,#teamReminder p,#hairdoReminder p,#hairdoPaymentReminder p{margin:0 0 6px!important;font-size:12px;line-height:1.4}
+#doneReminder button,#teamReminder button,#hairdoReminder button{padding:7px 10px!important;margin-top:4px!important}
+#doneReminder small,#teamReminder small,#hairdoReminder small{margin-top:2px!important}
+#contentAlertBanner{padding:10px 14px 10px 42px!important;margin-top:0!important;margin-bottom:10px!important;border-radius:16px!important;font-size:12px;line-height:1.4}
+#contentAlertBanner::before{top:10px;left:12px}
+#viewHome:has(>section[role="status"]){padding-top:6px}
+</style><style id="compact-booking-preview">
+#previewOverlay .preview-modal-head{padding-top:14px;padding-bottom:14px}
+#previewOverlay .preview-modal-body{padding-top:10px;padding-bottom:12px}
+#previewOverlay .preview-modal-body>.list-card{padding:6px 16px;margin-bottom:10px}
+#previewOverlay .preview-row{padding:6px 0;gap:12px;min-height:0;line-height:1.35}
+#previewOverlay .preview-label,#previewOverlay .preview-value{line-height:1.35}
+#previewOverlay .preview-footer-actions{margin-top:10px}
 </style></head>
 <body>
 
@@ -1521,7 +1564,7 @@ function onDiscountTypeChange(){
     if(input) input.value = '';
   } else {
     wrap.style.visibility = '';
-    if(label) label.textContent = type === 'percent' ? 'Persen (%)' : 'Nominal (Rp)';
+    if(label) label.textContent = type === 'percent' ? 'Percentage (%)' : 'Amount (Rp)';
     if(input){
       input.value = '';
       input.oninput = function(){ normalizeDiscountInput(this); };
@@ -1531,6 +1574,7 @@ function onDiscountTypeChange(){
   recheckFullPaymentStage();
 }
 
+function updateTeamFieldColor(el){el.classList.toggle('team-filled',!!el.value.trim());}
 function updateTeamCostVisibility(){
   const pkg = (document.getElementById('f_package') || {}).value || '';
   const price=document.getElementById('f_price');
@@ -1538,7 +1582,8 @@ function updateTeamCostVisibility(){
   const handled = (document.getElementById('f_handledBy') || {}).value || '';
   const show = pkg === 'Diamond Wedding' || handled === 'Team';
   const wrap = document.getElementById('f_teamAllocationWrap');
-  if(wrap) wrap.style.display = show ? '' : 'none';
+  if(wrap) wrap.style.display = show ? 'grid' : 'none';
+  ['f_teamName','f_teamAllocation'].forEach(id=>{const el=document.getElementById(id);if(el)updateTeamFieldColor(el);});
 }
 
 function recheckFullPaymentStage(){
@@ -1917,7 +1962,24 @@ function renderDoneReminder(){
 setInterval(()=>{if(currentView==='home')renderDoneReminder();},30000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)renderDoneReminder();});
 
+function getMissingTeamBookings(now=new Date()){
+ const parts=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Jakarta',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(now);
+ const value=t=>parts.find(p=>p.type===t).value;
+ const today=value('year')+'-'+value('month')+'-'+value('day');
+ const end=new Date(today+'T00:00:00Z');end.setUTCDate(end.getUTCDate()+14);
+ const last=end.toISOString().slice(0,10);
+ return bookings.filter(b=>!b.cancelled&&!b.done&&(b.handledBy==='Team'||b.package==='Diamond Wedding')&&!(b.teamName||'').trim()&&b.date>=today&&b.date<=last).sort((a,b)=>a.date.localeCompare(b.date));
+}
+function renderTeamReminder(){
+ const home=document.getElementById('viewHome');if(!home||!dataLoaded)return;
+ let card=document.getElementById('teamReminder');const missing=getMissingTeamBookings();
+ if(!missing.length){if(card)card.remove();return;}
+ if(!card){card=document.createElement('section');card.id='teamReminder';card.className='list-card';card.setAttribute('role','status');home.prepend(card);}
+ card.innerHTML=`<h3>Team not assigned · ${missing.length} booking</h3><p>Please assign a team for bookings within the next 14 days.</p>`+missing.map(b=>`<button type="button" data-booking-id="${escapeHtml(b.id)}"><span><strong>${escapeHtml(b.clientName)}</strong><small>${escapeHtml(formatDateLong(b.date))}</small></span><span>Assign team →</span></button>`).join('');
+ card.querySelectorAll('button').forEach(button=>button.onclick=()=>openBookingForm(button.dataset.bookingId));
+}
 function renderHairdoReminder(){
+  renderTeamReminder();
   const home = document.getElementById('viewHome');
   if(!home || !dataLoaded) return;
   let card = document.getElementById('hairdoReminder');
@@ -2318,7 +2380,8 @@ function renderHistoryList(){
 
   const rows = filtered.map(b => {
     const pkg = PACKAGES[b.package] || PACKAGES.Others;
-    const pkgLine = escapeHtml(pkg.label) + (b.hairdo?.trim() ? ` - ${escapeHtml(b.hairdo.trim())}` : '');
+    const assignedNames = [b.teamName, b.hairdo].map(name => (name || '').trim()).filter(name => name && name !== '-');
+    const pkgLine = escapeHtml(pkg.label) + (assignedNames.length ? ` - ${assignedNames.map(escapeHtml).join(' + ')}` : '');
     const cancelTag = b.cancelled
       ? `<span style="display:inline-block;margin-left:6px;font-size:10px;font-weight:800;
            color:#75665b;background:rgba(253,230,236,0.9);
@@ -3223,12 +3286,7 @@ function renderContentList(){
         <div class="content-accent-bar" style="background:linear-gradient(180deg,${style.accent},${style.border});"></div>
         <div class="content-row-body">
           <div class="content-row-left">
-            <div class="content-name">${escapeHtml(b.clientName)}</div>
-            ${b.igAccount ? `<div class="content-ig">${escapeHtml(b.igAccount)}</div>` : ''}
-            <div class="content-pkg-row">
-              <span class="content-pkg-badge" style="background:${pkg.tint};color:${pkg.color};border:1px solid ${pkg.color}22;">${pkg.label}</span>
-
-            </div>
+            <div class="content-name">${escapeHtml(b.clientName)} <span class="content-package-inline">- ${escapeHtml(pkg.label)}</span>${(b.igAccount || '').trim() && b.igAccount.trim() !== '-' ? ` <span class="content-ig">- @${escapeHtml(b.igAccount.trim().replace(/^@+/, ''))}</span>` : ''}</div>
           </div>
           <div class="content-date-status">              <span class="content-date">
                 <svg viewBox="0 0 14 14" width="11" height="11" fill="none" stroke-width="1.5"><rect x="1" y="2" width="12" height="11" rx="2"/><path d="M4 1v2M10 1v2M1 6h12"/></svg>
@@ -3354,15 +3412,8 @@ function openDayModal(dateStr, justSaved){
 
 function bookingCardHtml(b){
   const pkg = PACKAGES[b.package] || PACKAGES.Others;
-  const checkSvg = `<svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="7" cy="7" r="6" stroke-opacity="0.5"/><path d="M4 7l2 2 4-4"/></svg>`;
-  let payTag = `<span class="pay-tag none">No Deposit Yet</span>`;
-  if(packagePriceMissing(b)){ payTag = packagePriceWarning(); } else if(b.depositStage === 'Full Payment'){
-    payTag = `<span class="pay-tag lunas">${checkSvg}Paid in Full</span>`;
-  } else if(b.depositStage){
-    payTag = `<span class="pay-tag deposit">${b.depositStage}: ${formatRupiah(b.depositAmount)}</span>`;
-  }
-
-  if(isTrialMakeUp(b))payTag='';
+  const paymentStatus = b.depositStage === 'Full Payment' ? 'Full Payment' : (Number(b.depositAmount) > 0 ? 'Deposit' : 'No Deposit');
+  const paymentColor = paymentStatus === 'Full Payment' ? '#287d59' : paymentStatus === 'Deposit' ? '#b85b08' : '#c32d43';
   const totalDue = bookingTotalDue(b);
   let remaining = totalDue;
   if(b.depositStage === 'Full Payment'){
@@ -3371,33 +3422,31 @@ function bookingCardHtml(b){
     remaining = Math.max(remaining - b.depositAmount, 0);
   }
   const remainingHtml = isTrialMakeUp(b) ? '' : packagePriceMissing(b) ? packagePriceWarning() : remaining > 0
-    ? `<button type="button" class="bc-remaining" onclick="openInvoice('${b.id}', true)">Balance Due: ${formatRupiah(remaining)}</button>`
+    ? ''
     : `<div class="bc-paid-full"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="#1C1C1E" stroke-width="2" stroke-linecap="round"><circle cx="7" cy="7" r="6" stroke-opacity="0.5"/><path d="M4 7l2 2 4-4"/></svg>Paid in Full</div>`;
 
   return `
     <div class="booking-card" style="--card-stripe:linear-gradient(90deg,${pkg.color},${pkg.tint})">
       <div class="bc-inner">
-        <div class="bc-top">
-          <span class="badge" style="background:${pkg.tint};color:${pkg.color};border:1px solid ${pkg.color}22;">${pkg.label}</span>
-          ${payTag}
-        </div>
         <div class="bc-name">${escapeHtml(b.clientName)}</div>
         <div class="bc-rows">
+          <span class="bc-label bc-detail-bold">Package</span><span class="bc-colon bc-detail-bold">:</span><span class="bc-val bc-detail-bold">${escapeHtml(pkg.label)}</span>
+          <span class="bc-label bc-detail-bold">Price</span><span class="bc-colon bc-detail-bold">:</span><span class="bc-val bc-detail-bold">${packagePriceMissing(b) ? 'Price not set' : formatRupiah(totalDue)}</span>
+          ${!isTrialMakeUp(b) ? `<span class="bc-label bc-detail-bold">Payment</span><span class="bc-colon bc-detail-bold">:</span><span class="bc-val bc-detail-bold" style="color:${paymentColor}">${paymentStatus}${paymentStatus === 'Deposit' ? ' - ' + formatRupiah(Number(b.depositAmount) || 0) : ''}</span>` : ''}
+          ${!isTrialMakeUp(b) && remaining > 0 ? `<span class="bc-label">Balance Due</span><span class="bc-colon">:</span><span class="bc-val" style="color:#c32d43">${formatRupiah(remaining)}</span>` : ''}
           <span class="bc-label">Handled by</span><span class="bc-colon">:</span><span class="bc-val">${escapeHtml(b.handledBy) || 'Nataliadesiandra'}</span>
           ${b.allDay ? `<span class="bc-label">Schedule</span><span class="bc-colon">:</span><span class="bc-val">All Day (date fully blocked)</span>` : ''}
           ${b.time ? `<span class="bc-label">Time</span><span class="bc-colon">:</span><span class="bc-val">${escapeHtml(formatTimeRange(b))}</span>` : ''}
           <span class="bc-label">Phone</span><span class="bc-colon">:</span><span class="bc-val">${escapeHtml(b.phone) || '-'}</span>
           <span class="bc-label">Venue</span><span class="bc-colon">:</span><span class="bc-val">${escapeHtml(b.venue) || '-'}</span>
+          ${(b.teamName || '').trim() || b.package === 'Diamond Wedding' || b.handledBy === 'Team' ? `<span class="bc-label">Team Name</span><span class="bc-colon">:</span><span class="bc-val">${escapeHtml((b.teamName || '').trim() || '-')}${Number(b.teamAllocation) > 0 ? ' - ' + formatRupiah(Number(b.teamAllocation)) : ''}</span>` : ''}
           <span class="bc-label">Hairdo</span><span class="bc-colon">:</span><span class="bc-val">${escapeHtml(b.hairdo) || '-'}${b.hairdoPrice ? ' · ' + formatRupiah(b.hairdoPrice) : ''}</span>
         </div>
         ${b.note ? `<div class="bc-note">${escapeHtml(b.note.replace(/^\s*\|\s*/, ''))}</div>` : ''}
         ${b.cancelled ? `<div class="bc-cancel-reason"><strong>Cancellation Reason</strong><div>${escapeHtml(b.cancelReason || 'No reason given')}</div></div>` : ''}
       </div>
       <div class="bc-price-area">
-        <div class="bc-price">
-          <span class="amount">${formatRupiah(totalDue)}</span>
-          ${remainingHtml}
-        </div>
+        ${remainingHtml ? `<div class="bc-price">${remainingHtml}</div>` : ''}
         <div class="bc-actions">
           ${b.cancelled ? '' : `<div class="bc-actions-row">
             <button class="bc-btn bc-btn-invoice" ${isTrialMakeUp(b)?'disabled aria-disabled="true"':''} onclick="openInvoice('${b.id}')">Invoice</button>
@@ -3488,6 +3537,8 @@ function openBookingPreview(bookingId, source){
     ['IG Account', b.igAccount || '-'],
     ['Age', b.age || '-'],
     ['Total Pax', b.totalPax || '-'],
+    ['Team Name', (b.teamName || '').trim() || '-'],
+    ...(Number(b.teamAllocation) > 0 ? [['Team Allocation', formatRupiah(Number(b.teamAllocation))]] : []),
     ['Hairdo', b.hairdo || '-'],
     ['Hairdo Price', b.hairdoPrice ? formatRupiah(b.hairdoPrice) : '-'],
     ['Package Price', (() => {
@@ -3496,7 +3547,7 @@ function openBookingPreview(bookingId, source){
       return pax > 1 ? `${formatRupiah(b.price)} × ${pax} pax = ${formatRupiah(bookingBasePrice(b))}` : formatRupiah(b.price);
     })()],
   ];
-  rows.push([b.discountType === 'percent' ? `Discount (${Number(b.discountValue)||0}%)` : 'Discount', '−'+formatRupiah(bookingDiscount(b))]);
+  if(bookingDiscount(b) > 0) rows.push([b.discountType === 'percent' ? `Discount (${Number(b.discountValue)||0}%)` : 'Discount', '−'+formatRupiah(bookingDiscount(b))]);
   if(homeService > 0) rows.push(['Additional Home Service', formatRupiah(homeService)]);
   if(transport > 0) rows.push(['Additional Transport', formatRupiah(transport)]);
   if(others > 0) rows.push(['Others', formatRupiah(others)]);
@@ -3504,7 +3555,7 @@ function openBookingPreview(bookingId, source){
     ['Total', formatRupiah(total)],
     ...bookingPayments(b).sort((a,b)=>(a.date||'').localeCompare(b.date||'')).map(p=>[`${/^deposit/i.test(p.type)?'Deposit':p.type} - ${p.date?new Date(p.date+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'Date not recorded'}`,formatRupiah(p.amount)]),
     ['Total Paid',formatRupiah(bookingPayments(b).reduce((sum,p)=>sum+Number(p.amount),0))],
-    ['Balance Due', formatRupiah(remaining)],
+    ['Balance Due', remaining === 0 ? 'Fully Paid' : formatRupiah(remaining)],
     ['Note', b.note || '-'],
   );
   if(b.done && isPastDateTime(b)) rows.push(['Content Status', b.contentStatus || 'No content yet']);
@@ -3512,8 +3563,12 @@ function openBookingPreview(bookingId, source){
   if(b.done) rows.push(['Status', 'Done']);
   rows.push(['Internal Notes', b.internalNotes || '-']);
 
-  const rowsHtml = rows.map(([label, value]) =>
-    `<div class="preview-row"><span class="preview-label">${escapeHtml(label)}</span><span class="preview-value ${value === 'Price not set' ? 'package-price-missing' : ''}">${escapeHtml(String(value))}</span></div>`
+  const rowsHtml = rows.filter(([label, value]) => {
+    if(label === 'Hairdo') return true;
+    if(label === 'Team Name' && (b.handledBy === 'Team' || b.package === 'Diamond Wedding')) return true;
+    return value != null && String(value).trim() !== '' && String(value).trim() !== '-';
+  }).map(([label, value]) =>
+    `<div class="preview-row${label === 'Balance Due' ? (remaining > 0 ? ' preview-balance-due' : ' preview-fully-paid') : ''}"><span class="preview-label">${escapeHtml(label)}</span><span class="preview-value ${value === 'Price not set' ? 'package-price-missing' : ''}${/^Deposit - /.test(label) ? ' preview-deposit' : ''}">${escapeHtml(String(value))}</span></div>`
   ).join('');
 
   // Use dedicated preview overlay (align-items:flex-start) so header is never clipped
@@ -3776,6 +3831,7 @@ function openBookingConfirmation(bookingId){
       ">
         <div style="font-size:14px;font-weight:700;color:#1C1C1E;margin-bottom:4px;">Thank you for booking with us!</div>
         <div style="font-size:12px;color:#8E8E93;">We look forward to seeing you on your special day ✨</div>
+        <div style="margin-top:8px;font-size:12px;"><a href="https://www.nataliadesiandramua.com" target="_blank" rel="noopener noreferrer" style="color:#8A6D56;text-decoration:none;">www.nataliadesiandramua.com</a></div>
       </div>
     </div>
   </div>`;
@@ -4040,6 +4096,7 @@ async function buildBcConfDataUrl(bookingId){
         <div style="text-align:center;padding:24px 0 8px;border-top:1px solid rgba(142,142,147,0.30);">
           <div style="font-size:30px;font-weight:700;color:#1C1C1E;margin-bottom:6px;">Thank you for booking with us!</div>
           <div style="font-size:24px;color:#8A6D56;">We look forward to seeing you on your special day ✨</div>
+        <div style="margin-top:8px;font-size:24px;"><a href="https://www.nataliadesiandramua.com" target="_blank" rel="noopener noreferrer" style="color:#8A6D56;text-decoration:none;">www.nataliadesiandramua.com</a></div>
         </div>
       </div>
     `;
@@ -4371,7 +4428,7 @@ function paymentHistoryHtml(b,large=false){
 function duplicateBooking(id){
  const source=bookings.find(b=>b.id===id);if(!source)return;
  const copy={date:'',time:'',timeEnd:'',allDay:false,payments:[],depositAmount:0,depositStage:''};
- for(const key of ['package','clientName','phone','venue','hairdo','price','note','internalNotes','retouch','igAccount','age','totalPax','look','hairdoPrice','homeServiceFee','transportFee','othersFee','teamAllocation','handledBy','discountType','discountValue']){
+ for(const key of ['package','clientName','phone','venue','hairdo','price','note','internalNotes','retouch','igAccount','age','totalPax','look','hairdoPrice','homeServiceFee','transportFee','othersFee','teamAllocation','teamName','handledBy','discountType','discountValue']){
   if(source[key]!==undefined)copy[key]=source[key];
  }
  openBookingForm(null,null,copy);
@@ -4528,6 +4585,11 @@ function openBookingForm(bookingId, presetDate, prefillData){
               <input type="text" inputmode="numeric" id="f_price" value="${groupThousands(b.price)}" placeholder="0" oninput="formatThousands(this);recheckFullPaymentStage();" required>
             </div>
 
+            <div class="row2" id="f_teamAllocationWrap" style="display:none;">
+              <div class="field"><label for="f_teamName">Team Name</label><input type="text" id="f_teamName" value="${escapeHtml(b.teamName || '')}" placeholder="Enter team name" oninput="updateTeamFieldColor(this)"></div>
+              <div class="field"><label for="f_teamAllocation">Team Allocation</label><input type="text" inputmode="numeric" id="f_teamAllocation" value="${b.teamAllocation === '' || b.teamAllocation == null ? '' : groupThousands(b.teamAllocation)}" placeholder="0" oninput="formatThousands(this);updateTeamFieldColor(this)"></div>
+            </div>
+
             <div class="row2">
               <div class="field">
                 <label>Additional Home Service</label>
@@ -4550,12 +4612,12 @@ function openBookingForm(bookingId, presetDate, prefillData){
                 <label>Discount</label>
                 <select id="f_discountType" onchange="onDiscountTypeChange()" style="-webkit-appearance:none;appearance:none;">
                   <option value="none" ${(!b.discountType||b.discountType==='none')?'selected':''}>No Discount</option>
-                  <option value="percent" ${b.discountType==='percent'?'selected':''}>Persen (%)</option>
-                  <option value="fixed"   ${b.discountType==='fixed'?'selected':''}>Nominal (Rp)</option>
+                  <option value="percent" ${b.discountType==='percent'?'selected':''}>Percentage (%)</option>
+                  <option value="fixed"   ${b.discountType==='fixed'?'selected':''}>Amount (Rp)</option>
                 </select>
               </div>
               <div class="field" id="f_discountValueWrap" style="${(!b.discountType||b.discountType==='none')?'visibility:hidden;':''}">
-                <label id="f_discountValueLabel">${b.discountType==='percent'?'Persen (%)':'Nominal (Rp)'}</label>
+                <label id="f_discountValueLabel">${b.discountType==='percent'?'Percentage (%)':'Amount (Rp)'}</label>
                 <input type="text" inputmode="numeric" id="f_discountValue"
                   value="${b.discountType === 'percent' ? (Number(b.discountValue)||'') : groupThousands(b.discountValue)}" pattern="[0-9,]*" autocomplete="off"
                   placeholder="${b.discountType==='percent'?'0':'0'}"
@@ -4563,10 +4625,7 @@ function openBookingForm(bookingId, presetDate, prefillData){
               </div>
             </div>
             </div>
-              <div class="field" id="f_teamAllocationWrap" style="display:none;">
-                <label>Team Cost (internal only)</label>
-                <input type="text" inputmode="numeric" id="f_teamAllocation" value="${groupThousands(b.teamAllocation)}" placeholder="0" oninput="formatThousands(this);">
-              </div>
+
 
             <hr class="hr">
             <section class="payment-editor"><h3>Payment History</h3><p>Record each payment separately with its actual date. Payment status is calculated automatically.</p>
@@ -4666,6 +4725,7 @@ async function submitBookingForm(evt, editingId){
       const raw = (document.getElementById('f_discountValue')?.value || '').replace(/[^0-9.]/g,'');
       return raw ? Number(raw) : 0;
     })(),
+    teamName: document.getElementById('f_teamName').value.trim(),
     teamAllocation: (() => {
       const el = document.getElementById('f_teamAllocation');
       const raw = el ? el.value.replace(/[^0-9]/g, '') : '';
@@ -4967,6 +5027,7 @@ function openInvoice(bookingId, forcePelunasan){
             ${b.note ? `<div class="inv-note" style="text-align:left;font-style:italic;">Note: ${escapeHtml(b.note)}</div>` : ''}
             <div class="inv-note" style="margin-top:16px;">${isLunas ? 'All payments received are final and non-refundable.' : 'Full payment is due 3 days before the event. The deposit is non-refundable.'}</div>
             <div class="inv-note">Thank you for trusting us with your special moment.</div>
+            <div class="inv-note"><a href="https://www.nataliadesiandramua.com" target="_blank" rel="noopener noreferrer" style="color:#8A6D56;text-decoration:none;">www.nataliadesiandramua.com</a></div>
 
           </div>
 
@@ -5107,6 +5168,7 @@ async function buildInvoiceCanvas(bookingId, forcePelunasan){
       <div style="text-align:center;padding:20px 0 8px;border-top:1px solid rgba(142,142,147,0.30);">
         <div style="font-size:22px;color:#8A6D56;font-style:italic;margin-bottom:8px;">${isLunas ? 'All payments received are final and non-refundable.' : 'Full payment is due 3 days before the event. The deposit is non-refundable.'}</div>
         <div style="font-size:28px;font-weight:700;color:#1C1C1E;">Thank you for trusting us with your special moment. ✨</div>
+        <div style="margin-top:8px;font-size:22px;"><a href="https://www.nataliadesiandramua.com" target="_blank" rel="noopener noreferrer" style="color:#8A6D56;text-decoration:none;">www.nataliadesiandramua.com</a></div>
       </div>
 
     </div>
