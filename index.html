@@ -1152,6 +1152,9 @@ body > .confirmation-overlay > .modal{margin:0!important;position:relative!impor
 #previewOverlay .preview-row{padding:6px 0;gap:12px;min-height:0;line-height:1.35}
 #previewOverlay .preview-label,#previewOverlay .preview-value{line-height:1.35}
 #previewOverlay .preview-footer-actions{margin-top:10px}
+</style><style>
+#bookingSourceAnalysis .planner-heading{flex-wrap:wrap;gap:12px}#bookingSourceAnalysis select{max-width:100%;padding:10px 12px;border:1px solid #eed3b1;border-radius:12px;background:#fff8ef;color:#584636;font:inherit}
+.source-analysis-row{margin:12px 0}.source-analysis-row>div:first-child{display:flex;justify-content:space-between;gap:12px;font-size:13px}.source-analysis-row span{overflow-wrap:anywhere}.source-analysis-row strong{white-space:nowrap}.source-analysis-track{height:7px;border-radius:8px;background:#eadbcd;margin-top:6px;overflow:hidden}.source-analysis-track span{display:block;height:100%;background:linear-gradient(90deg,#ff8845,#ffc47b);border-radius:8px}
 </style></head>
 <body>
 
@@ -2137,11 +2140,33 @@ async function reopenPlannerNote(id){
  try{await savePlannerNotes();plannerDismissed.delete(id);renderPlanner();checkPlannerReminders();}
  catch(error){note.done=true;renderPlanner();showToast('Could not save. Please try again.');}
 }
+let bookingSourceMonth = 'all';
+function toggleBookingSourceOther(){
+ const other=document.getElementById('f_bookingSource').value==='Other';
+ const input=document.getElementById('f_bookingSourceOther');input.style.display=other?'block':'none';input.required=other;if(other)input.focus();
+}
+function summarizeBookingSources(list,month){
+ const filtered=list.filter(b=>!b.cancelled&&(month==='all'||(month==='open'?!b.date:(b.date||'').slice(0,7)===month)));
+ const counts=new Map();
+ filtered.forEach(b=>{const name=(b.bookingSource==='Other'?(b.bookingSourceOther||'Other'):b.bookingSource||'Not specified').trim()||'Not specified';counts.set(name,(counts.get(name)||0)+1);});
+ return {total:filtered.length,rows:[...counts].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]))};
+}
+function renderBookingSourceAnalysis(){
+ const host=document.getElementById('bookingSourceAnalysis');if(!host)return;
+ const months=[...new Set(bookings.filter(b=>!b.cancelled&&b.date).map(b=>b.date.slice(0,7)))].sort().reverse();
+ const summary=summarizeBookingSources(bookings,bookingSourceMonth);
+ const known=summary.rows.filter(([name])=>name!=='Not specified');
+ const top=known.filter(([,count])=>count===known[0]?.[1]);
+ const missing=summary.rows.find(([name])=>name==='Not specified')?.[1]||0;
+ host.innerHTML=`<div class="planner-heading"><h2>Booking Source Analysis</h2><select aria-label="Booking source month" onchange="bookingSourceMonth=this.value;renderBookingSourceAnalysis()">${[['all','All months'],['open','Open Date'],...months.map(m=>[m,reportMonthLabel(m)])].map(([v,l])=>`<option value="${v}" ${bookingSourceMonth===v?'selected':''}>${escapeHtml(l)}</option>`).join('')}</select></div><p>${summary.total} bookings · By event month · Excludes cancelled bookings</p>${summary.rows.map(([name,count])=>`<div class="source-analysis-row"><div><span>${escapeHtml(name)}</span><strong>${count} · ${(count/summary.total*100).toFixed(1)}%</strong></div><div class="source-analysis-track"><span style="width:${count/summary.total*100}%"></span></div></div>`).join('')||'<p class="planner-muted">No bookings for this period.</p>'}${known.length?`<p>Top source${top.length>1?'s':''}: <strong>${top.map(([name])=>escapeHtml(name)).join(', ')}</strong> — ${top[0][1]} booking${top[0][1]===1?'':'s'} each.</p>`:''}${missing?`<p class="planner-muted">${missing} booking${missing===1?' has':'s have'} no source recorded.</p>`:''}`;
+}
+
 function renderPlanner(){
  const host=document.getElementById('viewPlanner');if(!host)return;
  const pending=bookings.filter(b=>!b.date&&!b.cancelled&&!b.done);
  host.innerHTML=`<section class="planner-card"><div class="planner-heading"><h2>Open Date</h2><button class="btn btn-primary" onclick="openUndatedBooking()">+ Booking</button></div><p>Bookings waiting for an event date.</p>${pending.length?pending.map(b=>`<button class="planner-booking" data-booking="${escapeHtml(b.id)}"><strong>${escapeHtml(b.clientName)}</strong><span>${escapeHtml((PACKAGES[b.package]||PACKAGES.Others).label)} · Set date →</span></button>`).join(''):'<p class="planner-muted">No open-date bookings.</p>'}</section>
  <section class="planner-card"><div class="planner-heading"><h2>Notes & Reminders</h2><button class="btn btn-primary" onclick="openPlannerNote()">+ Note</button></div>${plannerNotes.filter(n=>plannerNoteUpcoming(n)).sort((a,b)=>a.eventAt.localeCompare(b.eventAt)).map(n=>`<div class="planner-note ${n.done?'planner-note-done':''}"><p class="planner-note-date">${escapeHtml(n.eventAt.replace('T',' · '))}</p><div class="planner-note-text">${escapeHtml(n.text)}</div><small>Reminder: ${escapeHtml(n.remindAt.replace('T',' · '))}${n.done?' · Completed':''}</small><div><button class="btn btn-ghost" data-note="${escapeHtml(n.id)}">Edit</button><button class="btn btn-primary" data-copy="${escapeHtml(n.id)}">Copy</button>${n.done?`<button class="btn btn-primary" data-reopen="${escapeHtml(n.id)}">Cancel Done</button>`:''}${!n.done?`<button class="btn btn-ghost" data-done="${escapeHtml(n.id)}">Done</button>`:''}<button class="btn btn-ghost-danger" data-delete="${escapeHtml(n.id)}">Delete</button></div></div>`).join('')||'<p class="planner-muted">No notes yet.</p>'}</section>`;
+ host.insertAdjacentHTML('beforeend','<section class="planner-card" id="bookingSourceAnalysis"></section>');renderBookingSourceAnalysis();
  host.querySelectorAll('[data-copy]').forEach(el=>el.onclick=()=>copyPlannerNote(el.dataset.copy));
  host.querySelectorAll('[data-reopen]').forEach(el=>el.onclick=()=>reopenPlannerNote(el.dataset.reopen));
  host.querySelectorAll('[data-delete]').forEach(el=>el.onclick=()=>deletePlannerNote(el.dataset.delete));
@@ -3437,6 +3462,7 @@ function bookingCardHtml(b){
           <span class="bc-label">Handled by</span><span class="bc-colon">:</span><span class="bc-val">${escapeHtml(b.handledBy) || 'Nataliadesiandra'}</span>
           ${b.allDay ? `<span class="bc-label">Schedule</span><span class="bc-colon">:</span><span class="bc-val">All Day (date fully blocked)</span>` : ''}
           ${b.time ? `<span class="bc-label">Time</span><span class="bc-colon">:</span><span class="bc-val">${escapeHtml(formatTimeRange(b))}</span>` : ''}
+          ${b.retouch === 'Yes' ? `<span class="bc-label">Retouch time</span><span class="bc-colon">:</span><span class="bc-val">${escapeHtml(retouchTimeLabel(b))}</span>` : ''}
           <span class="bc-label">Phone</span><span class="bc-colon">:</span><span class="bc-val">${escapeHtml(b.phone) || '-'}</span>
           <span class="bc-label">Venue</span><span class="bc-colon">:</span><span class="bc-val">${escapeHtml(b.venue) || '-'}</span>
           ${(b.teamName || '').trim() || b.package === 'Diamond Wedding' || b.handledBy === 'Team' ? `<span class="bc-label">Team Name</span><span class="bc-colon">:</span><span class="bc-val">${escapeHtml((b.teamName || '').trim() || '-')}${Number(b.teamAllocation) > 0 ? ' - ' + formatRupiah(Number(b.teamAllocation)) : ''}</span>` : ''}
@@ -3532,6 +3558,7 @@ function openBookingPreview(bookingId, source){
     ['Phone', b.phone || '-'],
     ['Venue', b.venue || '-'],
     ['Look', b.look || '-'],
+    ['Booking Source', b.bookingSource === 'Other' ? (b.bookingSourceOther || 'Other') : (b.bookingSource || '-')],
     ['Retouch', b.retouch || '-'],
     ...(b.retouch === 'Yes' ? [['Retouch time', retouchTimeLabel(b)]] : []),
     ['IG Account', b.igAccount || '-'],
@@ -4428,7 +4455,7 @@ function paymentHistoryHtml(b,large=false){
 function duplicateBooking(id){
  const source=bookings.find(b=>b.id===id);if(!source)return;
  const copy={date:'',time:'',timeEnd:'',allDay:false,payments:[],depositAmount:0,depositStage:''};
- for(const key of ['package','clientName','phone','venue','hairdo','price','note','internalNotes','retouch','igAccount','age','totalPax','look','hairdoPrice','homeServiceFee','transportFee','othersFee','teamAllocation','teamName','handledBy','discountType','discountValue']){
+ for(const key of ['package','clientName','phone','venue','hairdo','price','note','internalNotes','retouch','igAccount','age','totalPax','look','bookingSource','bookingSourceOther','hairdoPrice','homeServiceFee','transportFee','othersFee','teamAllocation','teamName','handledBy','discountType','discountValue']){
   if(source[key]!==undefined)copy[key]=source[key];
  }
  openBookingForm(null,null,copy);
@@ -4561,6 +4588,11 @@ function openBookingForm(bookingId, presetDate, prefillData){
                   <option value="Traditional" ${b.look === 'Traditional' ? 'selected' : ''}>Traditional</option>
                   <option value="International" ${b.look === 'International' ? 'selected' : ''}>International</option>
                 </select>
+              </div>
+              <div class="field">
+                <label for="f_bookingSource">Booking Source</label>
+                <select id="f_bookingSource" onchange="toggleBookingSourceOther()"><option value="">-</option>${['SocMed IG','SocMed Tiktok','Website','Reference','Expo','Other'].map(source=>`<option value="${source}" ${b.bookingSource===source?'selected':''}>${source}</option>`).join('')}</select>
+                <input type="text" id="f_bookingSourceOther" aria-label="Other booking source" placeholder="Enter booking source" value="${escapeHtml(b.bookingSourceOther||'')}" style="margin-top:8px;display:${b.bookingSource==='Other'?'block':'none'}">
               </div>
 
             </div>
@@ -4699,6 +4731,8 @@ async function submitBookingForm(evt, editingId){
     phone: '08' + document.getElementById('f_phone_rest').value.trim(),
     venue: document.getElementById('f_venue').value.trim(),
     look: document.getElementById('f_look').value,
+    bookingSource: document.getElementById('f_bookingSource').value,
+    bookingSourceOther: document.getElementById('f_bookingSource').value === 'Other' ? document.getElementById('f_bookingSourceOther').value.trim() : '',
     retouch: document.getElementById('f_retouch').checked ? 'Yes' : 'No',
     retouchStart: document.getElementById('f_retouch').checked ? document.getElementById('f_retouchStart').value : '',
     retouchEnd: document.getElementById('f_retouch').checked ? document.getElementById('f_retouchEnd').value : '',
@@ -4751,6 +4785,7 @@ async function submitBookingForm(evt, editingId){
   if(data.depositAmount > due){showToast('Total payments cannot exceed the booking total after discount.');return false;}
   data.depositStage = data.depositAmount > 0 && data.depositAmount >= due ? 'Full Payment' : data.depositAmount > 0 ? 'Deposit 1' : '';
 
+  if(data.bookingSource === 'Other' && !data.bookingSourceOther){showToast('Please enter the other booking source.');document.getElementById('f_bookingSourceOther').focus();return false;}
   const finalizeSave = async () => {
     try{
       if(editingId){
