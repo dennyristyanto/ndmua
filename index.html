@@ -1156,7 +1156,10 @@ body > .confirmation-overlay > .modal{margin:0!important;position:relative!impor
 #bookingSourceAnalysis .planner-heading{flex-wrap:wrap;gap:12px}#bookingSourceAnalysis select{max-width:100%;padding:10px 12px;border:1px solid #eed3b1;border-radius:12px;background:#fff8ef;color:#584636;font:inherit}
 .source-analysis-row{margin:12px 0}.source-analysis-row>div:first-child{display:flex;justify-content:space-between;gap:12px;font-size:13px}.source-analysis-row span{overflow-wrap:anywhere}.source-analysis-row strong{white-space:nowrap}.source-analysis-track{height:7px;border-radius:8px;background:#eadbcd;margin-top:6px;overflow:hidden}.source-analysis-track span{display:block;height:100%;background:linear-gradient(90deg,#ff8845,#ffc47b);border-radius:8px}
 </style><style id="report-period-design">
-.report-period-modal{width:min(460px,calc(100vw - 32px));overflow:hidden}
+#modalRoot .report-period-overlay{display:flex;align-items:center!important;justify-content:center!important;box-sizing:border-box;height:100dvh!important;padding:16px!important;overflow:hidden!important}
+#modalRoot .report-period-modal{width:100%;max-width:460px;max-height:100%;margin:0!important;display:flex;flex-direction:column;overflow:hidden;box-sizing:border-box}
+.report-period-modal .modal-head{flex-shrink:0}
+.report-period-modal .modal-body{min-height:0;overflow-y:auto}
 .report-period-modal .modal-body{padding:24px;background:linear-gradient(145deg,#fffaf3,#faf4f1)}
 .report-period-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
 .report-period-fields>div{min-width:0}
@@ -1168,7 +1171,7 @@ body > .confirmation-overlay > .modal{margin:0!important;position:relative!impor
 #reportPeriodError{font-size:12px;margin:12px 0 0}
 .report-period-actions{display:flex;justify-content:center;margin-top:24px}
 .report-period-actions .btn{min-width:170px;min-height:44px;padding:12px 26px}
-@media(max-width:360px){.report-period-fields{grid-template-columns:1fr;gap:12px}.report-period-modal .modal-body{padding:20px}}
+@media(max-width:480px){.report-period-fields{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.report-period-modal .modal-body{padding:20px 16px}.report-period-fields input[type=date]{padding:10px 6px;font-size:16px;max-width:100%;-webkit-appearance:none;appearance:none}.report-period-fields input::-webkit-date-and-time-value{min-width:0;text-align:left}.report-period-fields input::-webkit-datetime-edit{min-width:0;padding:0}}
 </style>
 </head>
 <body>
@@ -2716,7 +2719,7 @@ function openReportPeriod(){
  const month = /^\d{4}-\d{2}$/.test(reportMonthFilter) ? reportMonthFilter : localDate(today).slice(0,7);
  const start = reportPeriodStart || month+'-01';
  const end = reportPeriodEnd || localDate(new Date(Number(month.slice(0,4)),Number(month.slice(5)),0));
- showModal(`<div class="overlay" onclick="if(event.target===this)closeModal()"><div class="modal report-period-modal"><div class="modal-head"><div><h2>Report Period</h2><div class="sub">Select the booking date range</div></div><button class="modal-close" onclick="closeModal()" aria-label="Close">✕</button></div><div class="modal-body"><form onsubmit="event.preventDefault();applyReportPeriod()"><div class="report-period-fields"><div><label for="reportPeriodFrom">From</label><input id="reportPeriodFrom" type="date" required value="${start}"></div><div><label for="reportPeriodTo">To</label><input id="reportPeriodTo" type="date" required value="${end}"></div></div><p id="reportPeriodError" role="alert" style="color:#d12b43"></p><div class="report-period-actions"><button type="submit" class="btn btn-primary">Apply Period</button></div></form></div></div></div>`);
+ showModal(`<div class="overlay report-period-overlay" onclick="if(event.target===this)closeModal()"><div class="modal report-period-modal"><div class="modal-head"><div><h2>Report Period</h2><div class="sub">Select the booking date range</div></div><button class="modal-close" onclick="closeModal()" aria-label="Close">✕</button></div><div class="modal-body"><form onsubmit="event.preventDefault();applyReportPeriod()"><div class="report-period-fields"><div><label for="reportPeriodFrom">From</label><input id="reportPeriodFrom" type="date" required value="${start}"></div><div><label for="reportPeriodTo">To</label><input id="reportPeriodTo" type="date" required value="${end}"></div></div><p id="reportPeriodError" role="alert" style="color:#d12b43"></p><div class="report-period-actions"><button type="submit" class="btn btn-primary">Apply Period</button></div></form></div></div></div>`);
 }
 function applyReportPeriod(){
  const start=document.getElementById('reportPeriodFrom').value;
@@ -4234,21 +4237,7 @@ async function buildBcConfDataUrl(bookingId){
                    text-align:center;padding:16px;opacity:0.75;line-height:1.5;}
               .tip strong{color:#b49a70;}
             </style>
-          <style id="report-period-design">
-.report-period-modal{width:min(460px,calc(100vw - 32px));overflow:hidden}
-.report-period-modal .modal-body{padding:24px;background:linear-gradient(145deg,#fffaf3,#faf4f1)}
-.report-period-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
-.report-period-fields>div{min-width:0}
-.report-period-fields label{display:block;margin:0 0 8px;font-size:12px;font-weight:650;letter-spacing:.03em;color:#846752}
-.report-period-fields input[type=date]{display:block;box-sizing:border-box;width:100%;min-width:0;min-height:48px;padding:12px;font-family:inherit;font-size:14px;color:#634c3d;background:linear-gradient(135deg,#fff3df,#fffaf3);border:1px solid #e9ccb0;border-radius:14px;box-shadow:inset 0 1px 0 #fff,0 3px 9px #976a3610;color-scheme:light;outline:none}
-.report-period-fields input[type=date]:focus{border-color:#f59c50;box-shadow:0 0 0 3px #ffac5c26}
-.report-period-fields input::-webkit-calendar-picker-indicator{opacity:.65;cursor:pointer}
-#reportPeriodError:empty{display:none}
-#reportPeriodError{font-size:12px;margin:12px 0 0}
-.report-period-actions{display:flex;justify-content:center;margin-top:24px}
-.report-period-actions .btn{min-width:170px;min-height:44px;padding:12px 26px}
-@media(max-width:360px){.report-period-fields{grid-template-columns:1fr;gap:12px}.report-period-modal .modal-body{padding:20px}}
-</style>
+          
 </head>
           <body>
             <div class="tip">Tekan lama gambar di bawah ini →<br><strong>Simpan Gambar</strong> atau <strong>Bagikan</strong> ke WhatsApp</div>
@@ -5316,21 +5305,7 @@ async function downloadInvoiceImage(bookingId, forcePelunasan){
         w.document.write(`<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>${fileName}</title>
           <style>*{margin:0;padding:0;box-sizing:border-box;}body{background:#1a1a1a;display:flex;flex-direction:column;align-items:center;min-height:100vh;}
           img{width:100%;max-width:540px;display:block;}.tip{color:#fff;font-family:-apple-system,sans-serif;font-size:14px;text-align:center;padding:16px;opacity:0.8;line-height:1.5;}
-          .tip strong{color:#b49a70;}</style><style id="report-period-design">
-.report-period-modal{width:min(460px,calc(100vw - 32px));overflow:hidden}
-.report-period-modal .modal-body{padding:24px;background:linear-gradient(145deg,#fffaf3,#faf4f1)}
-.report-period-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
-.report-period-fields>div{min-width:0}
-.report-period-fields label{display:block;margin:0 0 8px;font-size:12px;font-weight:650;letter-spacing:.03em;color:#846752}
-.report-period-fields input[type=date]{display:block;box-sizing:border-box;width:100%;min-width:0;min-height:48px;padding:12px;font-family:inherit;font-size:14px;color:#634c3d;background:linear-gradient(135deg,#fff3df,#fffaf3);border:1px solid #e9ccb0;border-radius:14px;box-shadow:inset 0 1px 0 #fff,0 3px 9px #976a3610;color-scheme:light;outline:none}
-.report-period-fields input[type=date]:focus{border-color:#f59c50;box-shadow:0 0 0 3px #ffac5c26}
-.report-period-fields input::-webkit-calendar-picker-indicator{opacity:.65;cursor:pointer}
-#reportPeriodError:empty{display:none}
-#reportPeriodError{font-size:12px;margin:12px 0 0}
-.report-period-actions{display:flex;justify-content:center;margin-top:24px}
-.report-period-actions .btn{min-width:170px;min-height:44px;padding:12px 26px}
-@media(max-width:360px){.report-period-fields{grid-template-columns:1fr;gap:12px}.report-period-modal .modal-body{padding:20px}}
-</style>
+          .tip strong{color:#b49a70;}</style>
 </head>
           <body><div class="tip">Tekan lama gambar →<br><strong>Simpan Gambar</strong> atau <strong>Bagikan</strong> ke WhatsApp</div>
           <img src="${dataUrl}" alt="${fileName}"></body></html>`);
