@@ -1155,7 +1155,22 @@ body > .confirmation-overlay > .modal{margin:0!important;position:relative!impor
 </style><style>
 #bookingSourceAnalysis .planner-heading{flex-wrap:wrap;gap:12px}#bookingSourceAnalysis select{max-width:100%;padding:10px 12px;border:1px solid #eed3b1;border-radius:12px;background:#fff8ef;color:#584636;font:inherit}
 .source-analysis-row{margin:12px 0}.source-analysis-row>div:first-child{display:flex;justify-content:space-between;gap:12px;font-size:13px}.source-analysis-row span{overflow-wrap:anywhere}.source-analysis-row strong{white-space:nowrap}.source-analysis-track{height:7px;border-radius:8px;background:#eadbcd;margin-top:6px;overflow:hidden}.source-analysis-track span{display:block;height:100%;background:linear-gradient(90deg,#ff8845,#ffc47b);border-radius:8px}
-</style></head>
+</style><style id="report-period-design">
+.report-period-modal{width:min(460px,calc(100vw - 32px));overflow:hidden}
+.report-period-modal .modal-body{padding:24px;background:linear-gradient(145deg,#fffaf3,#faf4f1)}
+.report-period-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.report-period-fields>div{min-width:0}
+.report-period-fields label{display:block;margin:0 0 8px;font-size:12px;font-weight:650;letter-spacing:.03em;color:#846752}
+.report-period-fields input[type=date]{display:block;box-sizing:border-box;width:100%;min-width:0;min-height:48px;padding:12px;font-family:inherit;font-size:14px;color:#634c3d;background:linear-gradient(135deg,#fff3df,#fffaf3);border:1px solid #e9ccb0;border-radius:14px;box-shadow:inset 0 1px 0 #fff,0 3px 9px #976a3610;color-scheme:light;outline:none}
+.report-period-fields input[type=date]:focus{border-color:#f59c50;box-shadow:0 0 0 3px #ffac5c26}
+.report-period-fields input::-webkit-calendar-picker-indicator{opacity:.65;cursor:pointer}
+#reportPeriodError:empty{display:none}
+#reportPeriodError{font-size:12px;margin:12px 0 0}
+.report-period-actions{display:flex;justify-content:center;margin-top:24px}
+.report-period-actions .btn{min-width:170px;min-height:44px;padding:12px 26px}
+@media(max-width:360px){.report-period-fields{grid-template-columns:1fr;gap:12px}.report-period-modal .modal-body{padding:20px}}
+</style>
+</head>
 <body>
 
 <!-- ═══════════════ LOGIN SCREEN ═══════════════ -->
@@ -1435,6 +1450,8 @@ let bookingsHandledByFilter = 'all';
 let bookingsPackageFilter = 'all';
 let plannerNotes = [];
 let reportFilter = 'all';
+let reportPeriodStart = '';
+let reportPeriodEnd = '';
 let contentMonthFilter = 'all';
 let contentStatusFilter = 'all';
 let reportMonthFilter = (() => { const parts = new Intl.DateTimeFormat('en',{timeZone:'Asia/Jakarta',year:'numeric',month:'2-digit'}).formatToParts(new Date()); return parts.find(p=>p.type==='year').value+'-'+parts.find(p=>p.type==='month').value; })();
@@ -2684,13 +2701,32 @@ function renderReportFilterChips(){
       </svg>
     </button>`;
 
-  const past     = `<button class="filter-chip ${reportFilter==='booked'?'active':''}"    onclick="setReportFilter('booked')">Past</button>`;
+  const past = `<button class="filter-chip ${reportFilter==='period'?'active':''}" onclick="openReportPeriod()">Period</button>`;
   const upcoming = `<button class="filter-chip ${reportFilter==='upcoming'?'active':''}"  onclick="setReportFilter('upcoming')">Upcoming</button>`;
   const cancelled= `<button class="filter-chip ${reportFilter==='cancelled'?'active':''}" onclick="setReportFilter('cancelled')">Cancelled</button>`;
 
   // 2×2 grid: [All months][Past] / [Upcoming][Cancelled]
-  el.innerHTML = monthPill + past + upcoming + cancelled;
+  el.innerHTML = monthPill + past + upcoming + cancelled + (reportFilter==='period' ? `<div style="grid-column:1/-1;font-size:12px;color:var(--muted);padding:4px 0">${escapeHtml(formatDateLong(reportPeriodStart))} – ${escapeHtml(formatDateLong(reportPeriodEnd))}</div>` : '');
   renderRfMonthMenu();
+}
+
+function openReportPeriod(){
+ const today = new Date();
+ const localDate = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+ const month = /^\d{4}-\d{2}$/.test(reportMonthFilter) ? reportMonthFilter : localDate(today).slice(0,7);
+ const start = reportPeriodStart || month+'-01';
+ const end = reportPeriodEnd || localDate(new Date(Number(month.slice(0,4)),Number(month.slice(5)),0));
+ showModal(`<div class="overlay" onclick="if(event.target===this)closeModal()"><div class="modal report-period-modal"><div class="modal-head"><div><h2>Report Period</h2><div class="sub">Select the booking date range</div></div><button class="modal-close" onclick="closeModal()" aria-label="Close">✕</button></div><div class="modal-body"><form onsubmit="event.preventDefault();applyReportPeriod()"><div class="report-period-fields"><div><label for="reportPeriodFrom">From</label><input id="reportPeriodFrom" type="date" required value="${start}"></div><div><label for="reportPeriodTo">To</label><input id="reportPeriodTo" type="date" required value="${end}"></div></div><p id="reportPeriodError" role="alert" style="color:#d12b43"></p><div class="report-period-actions"><button type="submit" class="btn btn-primary">Apply Period</button></div></form></div></div></div>`);
+}
+function applyReportPeriod(){
+ const start=document.getElementById('reportPeriodFrom').value;
+ const end=document.getElementById('reportPeriodTo').value;
+ if(!start || !end || start>end){document.getElementById('reportPeriodError').textContent='Choose an end date on or after the start date.';return;}
+ reportPeriodStart=start;
+ reportPeriodEnd=end;
+ reportFilter='period';
+ closeModal();
+ renderReport();
 }
 
 function rfToggleMonthDropdown(btn){
@@ -2787,10 +2823,10 @@ function getReportFilteredBookings(){
       if(!b.cancelled) return false;
     } else {
       if(b.cancelled) return false;
-      if(reportFilter === 'booked' && !isPastDate(b.date)) return false;
+      if(reportFilter === 'period' && (!b.date || b.date < reportPeriodStart || b.date > reportPeriodEnd)) return false;
       if(reportFilter === 'upcoming' && (!b.date || isPastDate(b.date))) return false;
     }
-    if(reportMonthFilter !== 'all' && b.date.slice(0, 7) !== reportMonthFilter) return false;
+    if(reportFilter !== 'period' && reportMonthFilter !== 'all' && (b.date || '').slice(0, 7) !== reportMonthFilter) return false;
     return true;
   }).sort((a, b) => a.date.localeCompare(b.date) || timeKey(a).localeCompare(timeKey(b)) || a.clientName.localeCompare(b.clientName));
 }
@@ -2819,8 +2855,8 @@ function computeReportFinancials(filtered){
 
 function openReportBookingHistory(){
  const list=getReportFilteredBookings();
- const status={all:'All bookings',booked:'Past',upcoming:'Upcoming',cancelled:'Cancelled'}[reportFilter]||'All bookings';
- const month=reportMonthLabel(reportMonthFilter);
+ const status={all:'All bookings',period:'Period',upcoming:'Upcoming',cancelled:'Cancelled'}[reportFilter]||'All bookings';
+ const month=reportFilter==='period' ? `${formatDateLong(reportPeriodStart)} – ${formatDateLong(reportPeriodEnd)}` : reportMonthLabel(reportMonthFilter);
  showModal(`<div class="overlay" onclick="if(event.target===this)closeModal()"><div class="modal w-lg"><div class="modal-head"><div><h2>Booking History</h2><div class="sub">${escapeHtml(month)} · ${status} · ${list.length} booking</div></div><button class="modal-close" onclick="closeModal()">✕</button></div><div class="modal-body">${list.length?list.map(b=>`<div style="margin-bottom:18px"><p style="font-weight:700">${escapeHtml(formatDateLong(b.date))}</p>${bookingCardHtml(b)}</div>`).join(''):'<p>No bookings for this filter.</p>'}</div></div></div>`);
 }
 function renderReport(){
@@ -3062,7 +3098,7 @@ function exportReportToExcel(){
   const wsSummary = XLSX.utils.json_to_sheet(summaryRows);
   XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
 
-  const monthLabel = reportMonthFilter === 'all' ? 'AllMonths' : reportMonthFilter;
+  const monthLabel = reportFilter === 'period' ? `${reportPeriodStart}-to-${reportPeriodEnd}` : reportMonthFilter === 'all' ? 'AllMonths' : reportMonthFilter;
   const filterLabel = reportFilter.charAt(0).toUpperCase() + reportFilter.slice(1);
   XLSX.writeFile(wb, `Booking-Report-${filterLabel}-${monthLabel}.xlsx`);
 }
@@ -4198,7 +4234,22 @@ async function buildBcConfDataUrl(bookingId){
                    text-align:center;padding:16px;opacity:0.75;line-height:1.5;}
               .tip strong{color:#b49a70;}
             </style>
-          </head>
+          <style id="report-period-design">
+.report-period-modal{width:min(460px,calc(100vw - 32px));overflow:hidden}
+.report-period-modal .modal-body{padding:24px;background:linear-gradient(145deg,#fffaf3,#faf4f1)}
+.report-period-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.report-period-fields>div{min-width:0}
+.report-period-fields label{display:block;margin:0 0 8px;font-size:12px;font-weight:650;letter-spacing:.03em;color:#846752}
+.report-period-fields input[type=date]{display:block;box-sizing:border-box;width:100%;min-width:0;min-height:48px;padding:12px;font-family:inherit;font-size:14px;color:#634c3d;background:linear-gradient(135deg,#fff3df,#fffaf3);border:1px solid #e9ccb0;border-radius:14px;box-shadow:inset 0 1px 0 #fff,0 3px 9px #976a3610;color-scheme:light;outline:none}
+.report-period-fields input[type=date]:focus{border-color:#f59c50;box-shadow:0 0 0 3px #ffac5c26}
+.report-period-fields input::-webkit-calendar-picker-indicator{opacity:.65;cursor:pointer}
+#reportPeriodError:empty{display:none}
+#reportPeriodError{font-size:12px;margin:12px 0 0}
+.report-period-actions{display:flex;justify-content:center;margin-top:24px}
+.report-period-actions .btn{min-width:170px;min-height:44px;padding:12px 26px}
+@media(max-width:360px){.report-period-fields{grid-template-columns:1fr;gap:12px}.report-period-modal .modal-body{padding:20px}}
+</style>
+</head>
           <body>
             <div class="tip">Tekan lama gambar di bawah ini →<br><strong>Simpan Gambar</strong> atau <strong>Bagikan</strong> ke WhatsApp</div>
             <img src="${dataUrl}" alt="${fileName}">
@@ -5265,7 +5316,22 @@ async function downloadInvoiceImage(bookingId, forcePelunasan){
         w.document.write(`<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"><title>${fileName}</title>
           <style>*{margin:0;padding:0;box-sizing:border-box;}body{background:#1a1a1a;display:flex;flex-direction:column;align-items:center;min-height:100vh;}
           img{width:100%;max-width:540px;display:block;}.tip{color:#fff;font-family:-apple-system,sans-serif;font-size:14px;text-align:center;padding:16px;opacity:0.8;line-height:1.5;}
-          .tip strong{color:#b49a70;}</style></head>
+          .tip strong{color:#b49a70;}</style><style id="report-period-design">
+.report-period-modal{width:min(460px,calc(100vw - 32px));overflow:hidden}
+.report-period-modal .modal-body{padding:24px;background:linear-gradient(145deg,#fffaf3,#faf4f1)}
+.report-period-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.report-period-fields>div{min-width:0}
+.report-period-fields label{display:block;margin:0 0 8px;font-size:12px;font-weight:650;letter-spacing:.03em;color:#846752}
+.report-period-fields input[type=date]{display:block;box-sizing:border-box;width:100%;min-width:0;min-height:48px;padding:12px;font-family:inherit;font-size:14px;color:#634c3d;background:linear-gradient(135deg,#fff3df,#fffaf3);border:1px solid #e9ccb0;border-radius:14px;box-shadow:inset 0 1px 0 #fff,0 3px 9px #976a3610;color-scheme:light;outline:none}
+.report-period-fields input[type=date]:focus{border-color:#f59c50;box-shadow:0 0 0 3px #ffac5c26}
+.report-period-fields input::-webkit-calendar-picker-indicator{opacity:.65;cursor:pointer}
+#reportPeriodError:empty{display:none}
+#reportPeriodError{font-size:12px;margin:12px 0 0}
+.report-period-actions{display:flex;justify-content:center;margin-top:24px}
+.report-period-actions .btn{min-width:170px;min-height:44px;padding:12px 26px}
+@media(max-width:360px){.report-period-fields{grid-template-columns:1fr;gap:12px}.report-period-modal .modal-body{padding:20px}}
+</style>
+</head>
           <body><div class="tip">Tekan lama gambar →<br><strong>Simpan Gambar</strong> atau <strong>Bagikan</strong> ke WhatsApp</div>
           <img src="${dataUrl}" alt="${fileName}"></body></html>`);
         w.document.close();
