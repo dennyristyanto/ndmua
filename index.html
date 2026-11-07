@@ -1204,7 +1204,27 @@ body > .confirmation-overlay > .modal{margin:0!important;position:relative!impor
 #appRoot>.bottom-nav .nav-btn:active{transform:scale(.96)}
 @media(prefers-reduced-motion:reduce){#appRoot>.bottom-nav .nav-btn,#appRoot>.bottom-nav .nav-btn svg{transition:none;transform:none}}
 </style>
-<style>.combined-choice{display:flex;gap:12px;align-items:flex-start;padding:12px;border-bottom:1px solid #ead8c7;cursor:pointer}.combined-choice[hidden]{display:none}.combined-choice input{flex:none;margin-top:4px;width:18px;height:18px;accent-color:#ef9449}.combined-choice small{display:block;margin-top:4px;color:#807160;font-size:12px}#combinedChoices{max-height:36vh;overflow:auto}#combinedInvoiceSheet{overflow-wrap:anywhere}</style></head>
+<style>.combined-choice{display:flex;gap:12px;align-items:flex-start;padding:12px;border-bottom:1px solid #ead8c7;cursor:pointer}.combined-choice[hidden]{display:none}.combined-choice input{flex:none;margin-top:4px;width:18px;height:18px;accent-color:#ef9449}.combined-choice small{display:block;margin-top:4px;color:#807160;font-size:12px}#combinedChoices{max-height:36vh;overflow:auto}#combinedInvoiceSheet{overflow-wrap:anywhere}</style><style id="navigation-payment-refinements">
+#viewBookings>.view-booking-tabs .tab-toggle-btn,#tabUpcoming,#tabHistory,#tabHairdo,#tabCombineInvoice{border-radius:12px!important}
+#appRoot>.header{background:linear-gradient(120deg,rgba(255,252,247,.35),rgba(255,231,207,.24))!important;backdrop-filter:blur(18px) saturate(140%)!important;-webkit-backdrop-filter:blur(18px) saturate(140%)!important}
+#appRoot>.bottom-nav{background:linear-gradient(125deg,rgba(255,252,245,.34),rgba(255,244,230,.22))!important;backdrop-filter:blur(18px) saturate(150%)!important;-webkit-backdrop-filter:blur(18px) saturate(150%)!important}
+#appRoot>.bottom-nav .nav-btn svg{transition:transform .3s cubic-bezier(.2,.8,.2,1),stroke-width .3s ease;transform-origin:center}
+#appRoot>.bottom-nav .nav-btn.active svg{transform:translateY(-2px) scale(1.15);stroke-width:2.3!important}
+#appRoot>.bottom-nav .nav-btn.active{font-weight:750!important}
+.payment-booking-link{cursor:pointer;border-radius:6px}.payment-booking-link:focus-visible{outline:2px solid #ec9d55;outline-offset:4px}
+@media(prefers-reduced-motion:reduce){#appRoot>.bottom-nav .nav-btn svg{transition:none}}
+</style>
+<style>.combined-inputs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:12px}.combined-inputs .field{min-width:0;margin:0}.combined-inputs input{box-sizing:border-box;width:100%;min-width:0}.combined-inputs label{display:block;margin-bottom:8px}</style><style id="filter-button-motion-polish">
+#reportFilterChips .filter-chip{min-height:48px!important;padding:12px 6px!important;box-sizing:border-box}
+#viewBookings>div:first-child{gap:10px!important;padding:4px}
+#viewBookings>div:first-child .tab-toggle-btn{min-height:48px;min-width:0;border-radius:16px!important;border:2px solid #ffce9f!important;background:linear-gradient(125deg,#ff8745,#ffb65e)!important;color:#fffaf3!important;box-shadow:inset 0 2px 0 #ffffff73,0 0 0 3px #f7ece4,0 4px 0 #e9cbb746,0 7px 13px #c77a3d24!important;font-weight:650;padding:10px 6px!important;line-height:1.3}
+#viewBookings>div:first-child .tab-toggle-inactive{background:linear-gradient(125deg,#ffdbb3,#ffeccf)!important;color:#925625!important}
+#appRoot>.bottom-nav .nav-btn{transition:background .55s ease,color .55s ease,transform .55s cubic-bezier(.22,.7,.25,1),box-shadow .55s ease}
+#appRoot>.bottom-nav .nav-btn svg{transition:transform .55s cubic-bezier(.22,.7,.25,1),stroke-width .55s ease}
+#appRoot>.bottom-nav .nav-btn.active svg{transform:translateY(-2px) scale(1.23);stroke-width:2.3!important}
+@media(prefers-reduced-motion:reduce){#appRoot>.bottom-nav .nav-btn,#appRoot>.bottom-nav .nav-btn svg{transition:none!important}}
+</style>
+</head>
 <body>
 
 <!-- ═══════════════ LOGIN SCREEN ═══════════════ -->
@@ -2326,13 +2346,25 @@ function getOverdueHairdoPayments(now=new Date()){
   return now>due;
  });
 }
+function getOverdueTeamPayments(now=new Date()){
+ return getTeamPaymentGroups().flatMap(g=>g.items).filter(b=>{
+  if(!(Number(b.teamAllocation)>0))return false;
+  let end=bookingFinishDeadline(b);
+  // Legacy bookings without times use the end of their recorded event date.
+  if(!end && /^\d{4}-(0[1-9]|1[0-2])-\d{2}$/.test(b.date||'')){
+   const [y,m,d]=b.date.split('-').map(Number);end=new Date(y,m-1,d+1);
+  }
+  if(!end)return false;
+  const due=new Date(end);due.setDate(due.getDate()+7);
+  return now>due;
+ });
+}
 function renderHairdoPaymentReminder(){
  const host=document.getElementById('hairdoPaymentReminder');if(!host)return;
  if(!dataLoaded||currentBookingsTab!=='hairdo'){host.style.display='none';return;}
- const overdue=getOverdueHairdoPayments();
- host.style.display=overdue.length?'':'none';
- const entries=[...new Map(overdue.map(b=>[(b.hairdo||'').trim().toLowerCase()+'|'+b.date,b])).values()];
- host.innerHTML=overdue.length?`<strong>Overdue hairdo payments · ${overdue.length}</strong><p>Please settle hairdo payments overdue by more than 7 days.</p><div class="hairdo-overdue-list">${entries.map(b=>`<span>${escapeHtml(b.hairdo.trim())} ${escapeHtml(new Date(b.date+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'}))}</span>`).join('')}</div>`:'';
+ const groups=[{label:'hairdo',field:'hairdo',items:getOverdueHairdoPayments()},{label:'team',field:'teamName',items:getOverdueTeamPayments()}].filter(g=>g.items.length);
+ host.style.display=groups.length?'':'none';
+ host.innerHTML=groups.map(g=>`<div style="margin-bottom:8px"><strong>Overdue ${g.label} payments · ${g.items.length}</strong><p>Please settle ${g.label} payments overdue by more than 7 days.</p><div class="hairdo-overdue-list">${g.items.map(b=>`<span>${escapeHtml((b[g.field]||'').trim())} ${escapeHtml(new Date(b.date+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'}))}</span>`).join('')}</div></div>`).join('');
 }
 
 setInterval(()=>{if(currentView==='bookings')renderHairdoPaymentReminder();},30000);
@@ -2350,6 +2382,12 @@ function renderHairdoPayments(){
  const groups=getHairdoPaymentGroups();
  host.innerHTML=groups.length?groups.map(g=>`<section class="list-card hairdo-payment-card"><h3>${escapeHtml(g.name)}</h3>${g.items.map(b=>`<div class="hairdo-payment-row${isBookingBeforeToday(b) ? ' hairdo-date-past' : ''}"><div><strong>${escapeHtml(b.clientName)} (${escapeHtml((PACKAGES[b.package]||PACKAGES.Others).label)})</strong><div class="hairdo-payment-info">${escapeHtml(b.date?new Date(b.date+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'Open Date')} · ${formatRupiah(Number(b.hairdoPrice)||0)}</div></div><label class="hairdo-payment-toggle"><span class="switch"><input type="checkbox" role="switch" aria-label="Hairdo payment for ${escapeHtml(b.clientName)}" data-booking-id="${escapeHtml(b.id)}" ${b.hairdoPaid?'checked':''}><span class="switch-slider"></span></span></label></div>`).join('')}</section>`).join(''):'<div class="empty-hint">No pending hairdo payments.</div>';
  host.querySelectorAll('input[data-booking-id]').forEach(input=>input.onchange=()=>saveHairdoPayment(input));
+ host.querySelectorAll('input[data-booking-id]').forEach(input=>{
+  const details=input.closest('.hairdo-payment-row').firstElementChild;
+  details.classList.add('payment-booking-link');details.tabIndex=0;details.setAttribute('role','button');details.setAttribute('aria-label','Preview booking');
+  details.onclick=()=>openBookingPreview(input.dataset.bookingId);
+  details.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openBookingPreview(input.dataset.bookingId);}};
+ });
  host.insertAdjacentHTML('afterbegin','<h2 style="font-size:18px;margin:0 0 12px">Hairdo Payments</h2>');
  host.insertAdjacentHTML('beforeend','<h2 style="font-size:18px;margin:24px 0 12px">Team Payments</h2><div id="teamPaymentsList"></div>');
  renderTeamPayments();
@@ -2385,10 +2423,16 @@ function getTeamPaymentGroups(){
  return [...groups.values()].sort((a,b)=>a.name.localeCompare(b.name)).map(g=>({...g,items:g.items.sort((a,b)=>(a.date||'9999').localeCompare(b.date||'9999')||(a.clientName||'').localeCompare(b.clientName||''))}));
 }
 function renderTeamPayments(){
- const host=document.getElementById('panelTeam');if(!host||!dataLoaded)return;
+ const host=document.getElementById('teamPaymentsList');if(!host||!dataLoaded)return;
  const groups=getTeamPaymentGroups();
  host.innerHTML=groups.length?groups.map(g=>`<section class="list-card hairdo-payment-card"><h3>${escapeHtml(g.name)}</h3>${g.items.map(b=>`<div class="hairdo-payment-row${isBookingBeforeToday(b) ? ' hairdo-date-past' : ''}"><div><strong>${escapeHtml(b.clientName)} (${escapeHtml((PACKAGES[b.package]||PACKAGES.Others).label)})</strong><div class="hairdo-payment-info">${escapeHtml(b.date?new Date(b.date+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'Open Date')} · ${formatRupiah(Number(b.teamAllocation)||0)}</div></div><label class="hairdo-payment-toggle"><span class="switch"><input type="checkbox" role="switch" aria-label="Team payment for ${escapeHtml(b.clientName)}" data-booking-id="${escapeHtml(b.id)}" ${b.teamPaid?'checked':''}><span class="switch-slider"></span></span></label></div>`).join('')}</section>`).join(''):'<div class="empty-hint">No pending team payments.</div>';
  host.querySelectorAll('input[data-booking-id]').forEach(input=>input.onchange=()=>saveTeamPayment(input));
+ host.querySelectorAll('input[data-booking-id]').forEach(input=>{
+  const details=input.closest('.hairdo-payment-row').firstElementChild;
+  details.classList.add('payment-booking-link');details.tabIndex=0;details.setAttribute('role','button');details.setAttribute('aria-label','Preview booking');
+  details.onclick=()=>openBookingPreview(input.dataset.bookingId);
+  details.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openBookingPreview(input.dataset.bookingId);}};
+ });
 }
 function saveTeamPayment(input){
  if(!input.checked)return commitTeamPayment(input);
@@ -2409,6 +2453,7 @@ async function commitTeamPayment(input){
   });
   const b=bookings.find(b=>b.id===id);if(b)b.teamPaid=paid;
   renderTeamPayments();
+  renderHairdoPaymentReminder();
  }catch(error){console.error(error);input.checked=!paid;input.disabled=false;showToast('Could not save team payment. Please try again.');}
 }
 
@@ -5056,12 +5101,18 @@ let combinedInvoiceDraft=null;
 function combinedInvoiceTotals(items){
  return items.reduce((t,b)=>{const due=bookingTotalDue(b);const paid=bookingPayments(b).reduce((sum,p)=>sum+(Number(p.amount)||0),0);t.total+=due;t.paid+=paid;t.balance+=Math.max(0,due-paid);return t;},{total:0,paid:0,balance:0});
 }
+function isCombinedInvoiceUpcoming(b){
+ const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Jakarta',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());
+ const value=type=>parts.find(p=>p.type===type).value;
+ const date=value('year')+'-'+value('month')+'-'+value('day');
+ return !!b.date && b.date>=date && !b.cancelled && !isTrialMakeUp(b);
+}
 function openCombineInvoice(){
- const items=bookings.filter(b=>!b.cancelled&&!isTrialMakeUp(b)).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
- showModal(`<div class="overlay"><div class="modal w-md"><div class="modal-head"><div><h2>Combine Invoice</h2><div class="sub">Select at least two bookings</div></div><button class="modal-close" onclick="closeModal()">✕</button></div><div class="modal-body"><form onsubmit="event.preventDefault();createCombinedInvoice()"><div class="field"><label>Billed to</label><input id="combinedRecipient" required placeholder="Client / company name"></div><div class="field"><label>Search bookings</label><input type="search" placeholder="Name, package or date" oninput="filterCombinedBookings(this.value)"></div><div id="combinedChoices">${items.map(b=>`<label class="combined-choice" data-search="${escapeHtml((b.clientName+' '+b.package+' '+b.date).toLowerCase())}"><input type="checkbox" name="combinedBooking" value="${escapeHtml(b.id)}" onchange="updateCombinedSelection()" ${packagePriceMissing(b)?'disabled':''}><span><strong>${escapeHtml(b.clientName)}</strong><small>${escapeHtml(b.package)} · ${escapeHtml(b.date||'Open Date')} · ${Math.max(1,Number(b.totalPax)||1)} pax</small><small>${packagePriceMissing(b)?'Set package price first':formatRupiah(bookingTotalDue(b))}</small></span></label>`).join('')||'<p>No eligible bookings.</p>'}</div><p id="combinedSelection" aria-live="polite">0 selected</p><p id="combinedError" role="alert" style="color:#b32e47"></p><div class="report-period-actions"><button class="btn btn-primary" type="submit">Preview Combined Invoice</button></div></form></div></div></div>`);
+ const items=bookings.filter(isCombinedInvoiceUpcoming).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+ showModal(`<div class="overlay"><div class="modal w-md"><div class="modal-head"><div><h2>Combine Invoice</h2><div class="sub">Select at least two bookings</div></div><button class="modal-close" onclick="closeModal()">✕</button></div><div class="modal-body"><form onsubmit="event.preventDefault();createCombinedInvoice()"><div class="combined-inputs"><div class="field"><label>Billed to</label><input id="combinedRecipient" required placeholder="Client / company name"></div><div class="field"><label>Search bookings</label><input type="search" placeholder="Name, package or date" oninput="filterCombinedBookings(this.value)"></div></div><div id="combinedChoices">${items.map(b=>`<label class="combined-choice" data-search="${escapeHtml((b.clientName+' '+b.package+' '+b.date).toLowerCase())}"><input type="checkbox" name="combinedBooking" value="${escapeHtml(b.id)}" onchange="updateCombinedSelection()" ${packagePriceMissing(b)?'disabled':''}><span><strong>${escapeHtml(b.clientName)}</strong><small>${escapeHtml(b.package)} · ${escapeHtml(b.date||'Open Date')} · ${Math.max(1,Number(b.totalPax)||1)} pax</small><small>${packagePriceMissing(b)?'Set package price first':formatRupiah(bookingTotalDue(b))}</small></span></label>`).join('')||'<p>No eligible bookings.</p>'}</div><p id="combinedSelection" aria-live="polite">0 selected</p><p id="combinedError" role="alert" style="color:#b32e47"></p><div class="report-period-actions"><button class="btn btn-primary" type="submit">Preview Combined Invoice</button></div></form></div></div></div>`);
 }
 function filterCombinedBookings(value){document.querySelectorAll('.combined-choice').forEach(row=>row.hidden=!row.dataset.search.includes(value.toLowerCase()));}
-function selectedCombinedBookings(){const ids=new Set(Array.from(document.querySelectorAll('input[name="combinedBooking"]:checked'),el=>el.value));return bookings.filter(b=>ids.has(b.id)&&!b.cancelled&&!isTrialMakeUp(b)&&!packagePriceMissing(b));}
+function selectedCombinedBookings(){const ids=new Set(Array.from(document.querySelectorAll('input[name="combinedBooking"]:checked'),el=>el.value));return bookings.filter(b=>ids.has(b.id)&&isCombinedInvoiceUpcoming(b)&&!packagePriceMissing(b));}
 function updateCombinedSelection(){const items=selectedCombinedBookings();document.getElementById('combinedSelection').textContent=`${items.length} selected · ${formatRupiah(combinedInvoiceTotals(items).total)}`;}
 function combinedServiceRows(items){
  return `<div class="inv-block-label" style="margin-top:20px">Service Details</div><table class="inv-table">${items.map(b=>`<tr><td><strong>${escapeHtml(b.clientName)}</strong><small style="display:block;margin:4px 0">${escapeHtml(b.date?formatDateLong(b.date):'Open Date')}${b.time?' · '+escapeHtml(b.time):''}</small>${escapeHtml((PACKAGES[b.package]||PACKAGES.Others).label)}<small style="display:block">${Math.max(1,Number(b.totalPax)||1)} pax</small></td><td class="r">${formatRupiah(bookingBasePrice(b))}</td></tr>${[['Home Service',b.homeServiceFee],['Transport',b.transportFee],['Others',b.othersFee]].filter(([,v])=>Number(v)>0).map(([label,v])=>`<tr><td>${label}</td><td class="r">${formatRupiah(Number(v))}</td></tr>`).join('')}${bookingDiscount(b)>0?`<tr><td>Discount</td><td class="r">−${formatRupiah(bookingDiscount(b))}</td></tr>`:''}`).join('')}</table>`;
