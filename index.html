@@ -1193,7 +1193,18 @@ body > .confirmation-overlay > .modal{margin:0!important;position:relative!impor
 #reportListContainer #bookingSourceAnalysis{margin-top:20px}
 @media(max-width:480px){.report-financial-analysis .finance-row{grid-template-columns:minmax(0,1fr) auto 46px;gap:7px;font-size:12px}.report-financial-analysis .finance-percent{font-size:11px}.report-financial-analysis .finance-total{font-size:14px}}
 </style>
-</head>
+<style id="frosted-navigation">
+#appRoot>.header{background:linear-gradient(120deg,rgba(255,252,247,.68),rgba(255,231,207,.52))!important;backdrop-filter:blur(24px) saturate(145%)!important;-webkit-backdrop-filter:blur(24px) saturate(145%)!important;border-bottom:1px solid #ffffff80;box-shadow:0 4px 24px #825b2910}
+#appRoot>.header .brand-mark,#appRoot>.header .brand-mark img{border-radius:12px!important}
+#appRoot>.bottom-nav{background:linear-gradient(125deg,rgba(255,252,245,.62),rgba(255,244,230,.42))!important;backdrop-filter:blur(26px) saturate(155%)!important;-webkit-backdrop-filter:blur(26px) saturate(155%)!important;border:1px solid #ffffffa6!important;box-shadow:inset 0 1px 0 #ffffffb3,0 8px 32px #78512a18!important}
+#appRoot>.bottom-nav .nav-btn{transition:background .28s ease,color .28s ease,transform .28s cubic-bezier(.2,.8,.2,1),box-shadow .28s ease}
+#appRoot>.bottom-nav .nav-btn svg{transition:transform .28s cubic-bezier(.2,.8,.2,1)}
+#appRoot>.bottom-nav .nav-btn.active{background:linear-gradient(125deg,#ffd69b99,#ffeaca70)!important;box-shadow:inset 0 1px 0 #ffffff8c,0 3px 12px #ca8c3620}
+#appRoot>.bottom-nav .nav-btn.active svg{transform:translateY(-2px)}
+#appRoot>.bottom-nav .nav-btn:active{transform:scale(.96)}
+@media(prefers-reduced-motion:reduce){#appRoot>.bottom-nav .nav-btn,#appRoot>.bottom-nav .nav-btn svg{transition:none;transform:none}}
+</style>
+<style>.combined-choice{display:flex;gap:12px;align-items:flex-start;padding:12px;border-bottom:1px solid #ead8c7;cursor:pointer}.combined-choice[hidden]{display:none}.combined-choice input{flex:none;margin-top:4px;width:18px;height:18px;accent-color:#ef9449}.combined-choice small{display:block;margin-top:4px;color:#807160;font-size:12px}#combinedChoices{max-height:36vh;overflow:auto}#combinedInvoiceSheet{overflow-wrap:anywhere}</style></head>
 <body>
 
 <!-- ═══════════════ LOGIN SCREEN ═══════════════ -->
@@ -1307,7 +1318,7 @@ body > .confirmation-overlay > .modal{margin:0!important;position:relative!impor
     
     <div style="display:flex;gap:8px;margin-bottom:12px;">
       <button class="tab-toggle-btn" id="tabUpcoming" onclick="switchBookingsTab('upcoming')" style="flex:1;">All Bookings</button>
-      <button class="tab-toggle-btn tab-toggle-inactive" id="tabHistory" onclick="switchBookingsTab('history')" style="flex:1;">Booking History</button><button class="tab-toggle-btn tab-toggle-inactive" id="tabHairdo" onclick="switchBookingsTab('hairdo')" style="flex:1">Hairdo</button>
+      <button class="tab-toggle-btn tab-toggle-inactive" id="tabHistory" onclick="switchBookingsTab('history')" style="flex:1;">Booking History</button><button class="tab-toggle-btn tab-toggle-inactive" id="tabHairdo" onclick="switchBookingsTab('hairdo')" style="flex:1">Hairdo &amp; Team</button><button class="tab-toggle-btn tab-toggle-inactive" id="tabCombineInvoice" onclick="openCombineInvoice()" style="flex:1;min-width:0;padding:8px 6px">Combine Invoice</button>
     </div>
     <section id="hairdoPaymentReminder" role="status" style="display:none"></section>
     <div id="panelHairdo" style="display:none"></div>
@@ -2339,6 +2350,9 @@ function renderHairdoPayments(){
  const groups=getHairdoPaymentGroups();
  host.innerHTML=groups.length?groups.map(g=>`<section class="list-card hairdo-payment-card"><h3>${escapeHtml(g.name)}</h3>${g.items.map(b=>`<div class="hairdo-payment-row${isBookingBeforeToday(b) ? ' hairdo-date-past' : ''}"><div><strong>${escapeHtml(b.clientName)} (${escapeHtml((PACKAGES[b.package]||PACKAGES.Others).label)})</strong><div class="hairdo-payment-info">${escapeHtml(b.date?new Date(b.date+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'Open Date')} · ${formatRupiah(Number(b.hairdoPrice)||0)}</div></div><label class="hairdo-payment-toggle"><span class="switch"><input type="checkbox" role="switch" aria-label="Hairdo payment for ${escapeHtml(b.clientName)}" data-booking-id="${escapeHtml(b.id)}" ${b.hairdoPaid?'checked':''}><span class="switch-slider"></span></span></label></div>`).join('')}</section>`).join(''):'<div class="empty-hint">No pending hairdo payments.</div>';
  host.querySelectorAll('input[data-booking-id]').forEach(input=>input.onchange=()=>saveHairdoPayment(input));
+ host.insertAdjacentHTML('afterbegin','<h2 style="font-size:18px;margin:0 0 12px">Hairdo Payments</h2>');
+ host.insertAdjacentHTML('beforeend','<h2 style="font-size:18px;margin:24px 0 12px">Team Payments</h2><div id="teamPaymentsList"></div>');
+ renderTeamPayments();
 }
 function saveHairdoPayment(input){
  if(!input.checked)return commitHairdoPayment(input);
@@ -2360,6 +2374,42 @@ async function commitHairdoPayment(input){
   const b=bookings.find(b=>b.id===id);if(b)b.hairdoPaid=paid;
   renderHairdoPayments();
  }catch(error){console.error(error);input.checked=!paid;input.disabled=false;showToast('Could not save hairdo payment. Please try again.');}
+}
+
+function getTeamPaymentGroups(){
+ const groups=new Map();
+ bookings.filter(b=>!b.cancelled&&!b.teamPaid&&b.teamName&&b.teamName.trim()&&b.teamName.trim()!=='-').forEach(b=>{
+  const name=b.teamName.trim().replace(/\s+/g,' '),key=name.toLocaleLowerCase();
+  if(!groups.has(key))groups.set(key,{name,items:[]});groups.get(key).items.push(b);
+ });
+ return [...groups.values()].sort((a,b)=>a.name.localeCompare(b.name)).map(g=>({...g,items:g.items.sort((a,b)=>(a.date||'9999').localeCompare(b.date||'9999')||(a.clientName||'').localeCompare(b.clientName||''))}));
+}
+function renderTeamPayments(){
+ const host=document.getElementById('panelTeam');if(!host||!dataLoaded)return;
+ const groups=getTeamPaymentGroups();
+ host.innerHTML=groups.length?groups.map(g=>`<section class="list-card hairdo-payment-card"><h3>${escapeHtml(g.name)}</h3>${g.items.map(b=>`<div class="hairdo-payment-row${isBookingBeforeToday(b) ? ' hairdo-date-past' : ''}"><div><strong>${escapeHtml(b.clientName)} (${escapeHtml((PACKAGES[b.package]||PACKAGES.Others).label)})</strong><div class="hairdo-payment-info">${escapeHtml(b.date?new Date(b.date+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'Open Date')} · ${formatRupiah(Number(b.teamAllocation)||0)}</div></div><label class="hairdo-payment-toggle"><span class="switch"><input type="checkbox" role="switch" aria-label="Team payment for ${escapeHtml(b.clientName)}" data-booking-id="${escapeHtml(b.id)}" ${b.teamPaid?'checked':''}><span class="switch-slider"></span></span></label></div>`).join('')}</section>`).join(''):'<div class="empty-hint">No pending team payments.</div>';
+ host.querySelectorAll('input[data-booking-id]').forEach(input=>input.onchange=()=>saveTeamPayment(input));
+}
+function saveTeamPayment(input){
+ if(!input.checked)return commitTeamPayment(input);
+ const booking=bookings.find(b=>b.id===input.dataset.bookingId);
+ if(!booking){input.checked=false;return;}
+ const details=`${booking.teamName || '-'} - ${(PACKAGES[booking.package]||PACKAGES.Others).label} - ${formatRupiah(Number(booking.teamAllocation)||0)}`;
+ input.disabled=true;
+ customConfirm('Confirm this team payment as paid?',()=>{input.checked=true;commitTeamPayment(input);},()=>{input.checked=false;input.disabled=false;},'Confirm',details);
+}
+async function commitTeamPayment(input){
+ const id=input.dataset.bookingId,paid=input.checked;input.disabled=true;
+ try{
+  const ref=bookingsDocRef();
+  await ref.firestore.runTransaction(async tx=>{
+   const snap=await tx.get(ref);const list=(snap.data()||{}).bookings||[];
+   if(!list.some(b=>b.id===id&&!b.cancelled))throw new Error('Booking unavailable');
+   tx.set(ref,{bookings:list.map(b=>b.id===id?{...b,teamPaid:paid}:b),updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+  });
+  const b=bookings.find(b=>b.id===id);if(b)b.teamPaid=paid;
+  renderTeamPayments();
+ }catch(error){console.error(error);input.checked=!paid;input.disabled=false;showToast('Could not save team payment. Please try again.');}
 }
 
 function openBookingHistory(){
@@ -3552,7 +3602,7 @@ function buildConfirmationText(b){
   const basePrice = bookingBasePrice(b);
   const total = bookingTotalDue(b);
 
-  const paxNote = (Number(b.totalPax) || 1) > 1 ? ` × ${b.totalPax} pax` : '';
+  const paxNote = ` × ${Math.max(1,Number(b.totalPax)||1)} pax`;
   const extraLines = [
     `Package: ${pkg.label} - ${formatRupiah(b.price)}${paxNote} = ${formatRupiah(basePrice)}`,
     homeService > 0 ? `Additional Home Service: ${formatRupiah(homeService)}` : null,
@@ -3753,7 +3803,7 @@ function openBookingConfirmation(bookingId){
     : 'Discount';
 
   const dateStr = formatDateLong(b.date) + (b.time ? `, at ${formatTimeRange(b)}` : '');
-  const paxNote = pax > 1 ? ` × ${pax} pax` : '';
+  const paxNote = ` - ${pax} pax`;
 
   // ── Extra fee rows ────────────────────────────────────
   const feeRows = [
@@ -3823,7 +3873,7 @@ function openBookingConfirmation(bookingId){
           ['Date',    dateStr],
           ['Venue',   b.venue || '-'],
           ['Phone',   b.phone || '-'],
-          ['Package', pkg.label],
+          ['Package', `${pkg.label} - ${Math.max(1,Number(b.totalPax)||1)} pax`],
           ['Look', b.look || '-'],
           ['Payment', payStatusShort],
         ].filter(Boolean).map(([label, val]) => `
@@ -4060,7 +4110,7 @@ async function buildBcConfDataUrl(bookingId){
     const transport = Number(b.transportFee)   || 0;
     const others    = Number(b.othersFee)      || 0;
     const remaining = b.depositStage === 'Full Payment' ? 0 : Math.max(total - (Number(b.depositAmount)||0), 0);
-    const paxNote   = pax > 1 ? ` × ${pax} pax` : '';
+    const paxNote   = ` - ${pax} pax`;
     const dateStr   = formatDateLong(b.date) + (b.time ? `, at ${formatTimeRange(b)}` : '');
 
     let payColor = '#8A6D56', payLabel = 'Payment', payValue = 'No Deposit Yet';
@@ -4072,7 +4122,7 @@ async function buildBcConfDataUrl(bookingId){
       ['Date',    dateStr],
       ['Venue',   b.venue || '-'],
       ['Phone',   b.phone || '-'],
-      ['Package', pkg.label],
+      ['Package', `${pkg.label} - ${Math.max(1,Number(b.totalPax)||1)} pax`],
       ['Look', b.look || '-'],
       ['Payment', packagePriceMissing(b) ? 'Price not set' : b.depositStage === 'Full Payment' ? 'Paid in Full' : (/^deposit/i.test(b.depositStage||'') ? 'Deposit' : (b.depositStage || 'No Deposit Yet'))],
     ].filter(Boolean).map(([label, val]) => `
@@ -5002,6 +5052,40 @@ async function markDone(id){
   if(currentView === 'home') openDayModal(date);
 }
 
+let combinedInvoiceDraft=null;
+function combinedInvoiceTotals(items){
+ return items.reduce((t,b)=>{const due=bookingTotalDue(b);const paid=bookingPayments(b).reduce((sum,p)=>sum+(Number(p.amount)||0),0);t.total+=due;t.paid+=paid;t.balance+=Math.max(0,due-paid);return t;},{total:0,paid:0,balance:0});
+}
+function openCombineInvoice(){
+ const items=bookings.filter(b=>!b.cancelled&&!isTrialMakeUp(b)).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+ showModal(`<div class="overlay"><div class="modal w-md"><div class="modal-head"><div><h2>Combine Invoice</h2><div class="sub">Select at least two bookings</div></div><button class="modal-close" onclick="closeModal()">✕</button></div><div class="modal-body"><form onsubmit="event.preventDefault();createCombinedInvoice()"><div class="field"><label>Billed to</label><input id="combinedRecipient" required placeholder="Client / company name"></div><div class="field"><label>Search bookings</label><input type="search" placeholder="Name, package or date" oninput="filterCombinedBookings(this.value)"></div><div id="combinedChoices">${items.map(b=>`<label class="combined-choice" data-search="${escapeHtml((b.clientName+' '+b.package+' '+b.date).toLowerCase())}"><input type="checkbox" name="combinedBooking" value="${escapeHtml(b.id)}" onchange="updateCombinedSelection()" ${packagePriceMissing(b)?'disabled':''}><span><strong>${escapeHtml(b.clientName)}</strong><small>${escapeHtml(b.package)} · ${escapeHtml(b.date||'Open Date')} · ${Math.max(1,Number(b.totalPax)||1)} pax</small><small>${packagePriceMissing(b)?'Set package price first':formatRupiah(bookingTotalDue(b))}</small></span></label>`).join('')||'<p>No eligible bookings.</p>'}</div><p id="combinedSelection" aria-live="polite">0 selected</p><p id="combinedError" role="alert" style="color:#b32e47"></p><div class="report-period-actions"><button class="btn btn-primary" type="submit">Preview Combined Invoice</button></div></form></div></div></div>`);
+}
+function filterCombinedBookings(value){document.querySelectorAll('.combined-choice').forEach(row=>row.hidden=!row.dataset.search.includes(value.toLowerCase()));}
+function selectedCombinedBookings(){const ids=new Set(Array.from(document.querySelectorAll('input[name="combinedBooking"]:checked'),el=>el.value));return bookings.filter(b=>ids.has(b.id)&&!b.cancelled&&!isTrialMakeUp(b)&&!packagePriceMissing(b));}
+function updateCombinedSelection(){const items=selectedCombinedBookings();document.getElementById('combinedSelection').textContent=`${items.length} selected · ${formatRupiah(combinedInvoiceTotals(items).total)}`;}
+function combinedServiceRows(items){
+ return `<div class="inv-block-label" style="margin-top:20px">Service Details</div><table class="inv-table">${items.map(b=>`<tr><td><strong>${escapeHtml(b.clientName)}</strong><small style="display:block;margin:4px 0">${escapeHtml(b.date?formatDateLong(b.date):'Open Date')}${b.time?' · '+escapeHtml(b.time):''}</small>${escapeHtml((PACKAGES[b.package]||PACKAGES.Others).label)}<small style="display:block">${Math.max(1,Number(b.totalPax)||1)} pax</small></td><td class="r">${formatRupiah(bookingBasePrice(b))}</td></tr>${[['Home Service',b.homeServiceFee],['Transport',b.transportFee],['Others',b.othersFee]].filter(([,v])=>Number(v)>0).map(([label,v])=>`<tr><td>${label}</td><td class="r">${formatRupiah(Number(v))}</td></tr>`).join('')}${bookingDiscount(b)>0?`<tr><td>Discount</td><td class="r">−${formatRupiah(bookingDiscount(b))}</td></tr>`:''}`).join('')}</table>`;
+}
+function combinedPaymentHistory(items,totalPaid){
+ const payments=items.flatMap(b=>bookingPayments(b).map(p=>({...p,clientName:b.clientName}))).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+ return `<section class="inv-bank"><strong>Payment History</strong>${payments.length?payments.map(p=>`<div style="display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid #dfcbb7"><span>${escapeHtml(p.date?formatDateLong(p.date):'Date not recorded')} - ${escapeHtml(p.type||'Payment')}<small style="display:block;margin-top:3px">${escapeHtml(p.clientName)}</small></span><strong style="white-space:nowrap">${formatRupiah(Number(p.amount)||0)}</strong></div>`).join(''):'<p>No payments recorded.</p>'}<div style="display:flex;justify-content:space-between;gap:12px;padding-top:12px"><span>Total Paid</span><strong>${formatRupiah(totalPaid)}</strong></div></section>`;
+}
+function createCombinedInvoice(){
+ const items=selectedCombinedBookings();const recipient=document.getElementById('combinedRecipient').value.trim();
+ if(items.length<2||!recipient){document.getElementById('combinedError').textContent='Enter a recipient and select at least two bookings.';return;}
+ combinedInvoiceDraft={items:JSON.parse(JSON.stringify(items)),recipient,number:'CINV-'+new Date().toISOString().slice(0,10).replaceAll('-','')+'-'+uid().slice(-6).toUpperCase()};
+ const d=combinedInvoiceDraft,t=combinedInvoiceTotals(d.items);
+ showModal(`<div class="overlay"><div class="modal w-md"><div class="modal-head"><div><h2>Combined Invoice</h2><div class="sub">${escapeHtml(d.number)}</div></div><button class="modal-close" onclick="closeModal()">✕</button></div><div class="modal-body"><div id="combinedInvoiceSheet" class="inv-sheet"><div class="inv-brand">Nataliadesiandra MUA</div><p class="inv-block-label">MAKEUP ARTIST & BEAUTY SERVICES</p><div class="inv-meta">No. Invoice: ${escapeHtml(d.number)}<br>Invoice Date: ${escapeHtml(new Date().toLocaleDateString('en-GB'))}</div><p class="inv-block-label" style="margin-top:20px">Billed to</p><strong>${escapeHtml(d.recipient)}</strong>${combinedServiceRows(d.items)}<div class="inv-total"><span>Total Service Cost</span><strong>${formatRupiah(t.total)}</strong></div>${combinedPaymentHistory(d.items,t.paid)}<div class="inv-total" style="margin-top:12px"><span>Balance Due</span><strong>${t.balance?formatRupiah(t.balance):'Fully Paid'}</strong></div><div class="inv-bank">BCA Account Number: 861-004-6372<br>Account Name: Natalia Desiandra</div><p style="text-align:center;margin-top:24px">Thank you!<br><a href="https://www.nataliadesiandramua.com">www.nataliadesiandramua.com</a></p></div><div class="report-period-actions" style="gap:12px"><button class="btn btn-ghost" onclick="saveCombinedInvoice(this,false)">Download</button><button class="btn btn-primary" onclick="saveCombinedInvoice(this,true)">Share</button></div></div></div></div>`);
+}
+async function saveCombinedInvoice(btn,share){
+ if(!combinedInvoiceDraft)return;btn.disabled=true;
+ try{const canvas=await html2canvas(document.getElementById('combinedInvoiceSheet'),{scale:2,backgroundColor:'#fffaf5',useCORS:true});const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));if(!blob)throw new Error('Image failed');const file=new File([blob],combinedInvoiceDraft.number+'.png',{type:'image/png'});
+ if(share&&navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({title:'Combined Invoice',files:[file]});}
+ else if(share){showImageShareOverlay(canvas.toDataURL('image/png'),file.name);}
+ else{const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=file.name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+ }catch(e){if(e.name!=='AbortError')showToast('Unable to create invoice image. Please try again.');}finally{btn.disabled=false;}
+}
+
 /* ================= INVOICE ================= */
 function ensureInvoiceNumber(b){
   if(!b.invoiceNumber){
@@ -5086,7 +5170,7 @@ function openInvoice(bookingId, forcePelunasan){
             </div>
 
             <div class="inv-block-label" style="margin-top:20px">Service Details</div><table class="inv-table">
-              <tr><td>${pkg.label}${(Number(b.totalPax)||1) > 1 ? ` × ${b.totalPax} pax` : ''}</td><td class="r">${packagePriceMissing(b) ? packagePriceWarning() : formatRupiah(bookingBasePrice(b))}</td></tr>
+              <tr><td>${escapeHtml(pkg.label)}<div style="font-size:11px;color:#807366;margin-top:4px">${Math.max(1,Number(b.totalPax)||1)} pax</div></td><td class="r">${packagePriceMissing(b) ? packagePriceWarning() : formatRupiah(bookingBasePrice(b))}</td></tr>
               ${extraRows}
             </table>
 
@@ -5214,7 +5298,7 @@ async function buildInvoiceCanvas(bookingId, forcePelunasan){
       <div style="background:#FFEBD3;border:2px solid rgba(142,142,147,0.38);border-radius:22px;padding:28px 36px;">
         <div style="font-size:22px;font-weight:700;color:#8A6D56;margin-bottom:18px">Service Details</div><!-- Package -->
         <div style="display:flex;justify-content:space-between;align-items:baseline;padding:0 0 14px;border-bottom:1px solid rgba(142,142,147,0.28);">
-          <span style="font-size:28px;font-weight:600;color:#1C1C1E;">${escapeHtml(pkg.label)}${escapeHtml(paxNote)}</span>
+          <span style="font-size:28px;font-weight:600;color:#1C1C1E;">${escapeHtml(pkg.label)}<span style="display:block;font-size:22px;font-weight:400;color:#807366;margin-top:8px">${Math.max(1,Number(b.totalPax)||1)} pax</span></span>
           <span style="font-size:28px;font-weight:700;color:#1C1C1E;white-space:nowrap;padding-left:16px;">${formatRupiah(bookingBasePrice(b))}</span>
         </div>
         ${extraLines}
