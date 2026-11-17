@@ -1305,7 +1305,7 @@ body > .confirmation-overlay > .modal{margin:0!important;position:relative!impor
       </div>
     </div>
     <div style="display:flex;align-items:center;gap:8px;">
-      <button class="btn btn-primary" onclick="openAddBookingChoice()">+ New Booking</button>
+      <button id="headerPrimaryAction" class="btn btn-primary" onclick="openAddBookingChoice()">+ New Booking</button>
       <button onclick="openUserMenu()" style="background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.45);border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#FFFFFF;font-size:16px;flex-shrink:0;transition:background .15s ease;" title="User menu" aria-label="User menu"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg></button>
     </div>
   </div>
@@ -1503,6 +1503,9 @@ let bookingsMonthFilter = 'all';
 let bookingsHandledByFilter = 'all';
 let bookingsPackageFilter = 'all';
 let plannerNotes = [];
+let packageInclusions = {};
+const defaultPackageLabels=Object.fromEntries(Object.entries(PACKAGES).map(([k,p])=>[k,p.label]));
+function applyPackageNames(names){Object.entries(PACKAGES).forEach(([key,p])=>{p.label=typeof names?.[key]==='string'&&names[key].trim()?names[key]:defaultPackageLabels[key];});}
 let reportFilter = 'all';
 let reportPeriodStart = '';
 let reportPeriodEnd = '';
@@ -1529,6 +1532,8 @@ async function loadBookings(){
     const val  = snap.exists ? snap.data()?.bookings : null;
     bookings   = Array.isArray(val) ? val : [];
     plannerNotes = Array.isArray(snap.data()?.plannerNotes) ? snap.data().plannerNotes : [];
+        packageInclusions = snap.data()?.packageInclusions || {};
+        applyPackageNames(snap.data()?.packageNames);
     migrateLegacyPackageNames();
     dataLoaded = true;
     const hint = document.getElementById('loadingHint');
@@ -1539,6 +1544,8 @@ async function loadBookings(){
         if(now - _lastSaveTs < 2000) return;
         if(!docSnap.exists) return;
         plannerNotes = Array.isArray(docSnap.data()?.plannerNotes) ? docSnap.data().plannerNotes : [];
+        packageInclusions = docSnap.data()?.packageInclusions || {};
+        applyPackageNames(docSnap.data()?.packageNames);
         if(currentView==='planner')renderPlanner();
         checkPlannerReminders();
         const fresh = docSnap.data()?.bookings;
@@ -1788,7 +1795,8 @@ function formatDateLong(dateStr){
   return `${d} ${MONTHS_ID[m-1]} ${y}`;
 }
 function formatTimeRange(b){
-  if(!b.time) return '';
+  if(!b.time) return b.allDay ? 'All Day' : '';
+  if(b.allDay) return `${b.time} - All Day`;
   return b.timeEnd ? `${b.time} - ${b.timeEnd}` : b.time;
 }
 function bookingsOnDate(dateStr){
@@ -2121,12 +2129,14 @@ function openSpecificBooking(id){
 }
 function autoFillFinishTime(start){
  const end=document.getElementById('f_timeEnd');
- if(!end || !/^([01]\d|2[0-3]):[0-5]\d$/.test(start.value))return;
+ if(!end || end.disabled || !/^([01]\d|2[0-3]):[0-5]\d$/.test(start.value))return;
  if(end.dataset.manual==='true' && end.value)return;
  const minutes=(timeToMinutes(start.value)+120)%1440;
  end.value=pad(Math.floor(minutes/60))+':'+pad(minutes%60);
 }
 function syncStartTimeRequired(){
+ const end=document.getElementById('f_timeEnd');
+ if(end){end.required=false;end.disabled=!!document.getElementById('f_allDay')?.checked;}
  const field=document.getElementById('f_time');if(field)field.required=!document.getElementById('f_openDate')?.checked&&!document.getElementById('f_allDay')?.checked;
 }
 function summaryItemHtml(b){
@@ -2232,11 +2242,58 @@ function renderBookingSourceAnalysis(){
  host.innerHTML=`<div class="planner-heading"><h2>Booking Source Analysis</h2><select aria-label="Booking source month" onchange="bookingSourceMonth=this.value;renderBookingSourceAnalysis()">${[['all','All months'],['open','Open Date'],...months.map(m=>[m,reportMonthLabel(m)])].map(([v,l])=>`<option value="${v}" ${bookingSourceMonth===v?'selected':''}>${escapeHtml(l)}</option>`).join('')}</select></div><p>${summary.total} bookings · By event month · Excludes cancelled bookings</p>${summary.rows.map(([name,count])=>`<div class="source-analysis-row"><div><span>${escapeHtml(name)}</span><strong>${count} · ${(count/summary.total*100).toFixed(1)}%</strong></div><div class="source-analysis-track"><span style="width:${count/summary.total*100}%"></span></div></div>`).join('')||'<p class="planner-muted">No bookings for this period.</p>'}${known.length?`<p>Top source${top.length>1?'s':''}: <strong>${top.map(([name])=>escapeHtml(name)).join(', ')}</strong> — ${top[0][1]} booking${top[0][1]===1?'':'s'} each.</p>`:''}${missing?`<p class="planner-muted">${missing} booking${missing===1?' has':'s have'} no source recorded.</p>`:''}`;
 }
 
+
+function packageBenefitsHtml(b,large=false){
+ const value=packageInclusions[b.package];
+ if(typeof value!=='string'||!value.trim())return '';
+ return `<section style="margin:16px 0;padding:${large?'28px 36px':'14px 16px'};border:1px solid #E8D6C4;border-radius:18px;background:#fff5e9;color:#604b39;font-size:${large?'24px':'13px'};line-height:1.5"><strong>Package Benefits</strong><div style="white-space:pre-wrap;overflow-wrap:anywhere;margin-top:8px">${escapeHtml(value)}</div></section>`;
+}
+function openPackageNameSettings(){
+ showModal(`<div class="overlay"><div class="modal w-md"><div class="modal-head"><h2>Edit Package Names</h2><button class="modal-close" onclick="closeModal()">✕</button></div><div class="modal-body"><form id="packageNamesForm">${Object.entries(PACKAGES).map(([key,p])=>`<div class="field"><label>${escapeHtml(defaultPackageLabels[key])}</label><input data-package-key="${escapeHtml(key)}" value="${escapeHtml(p.label)}" required maxlength="100" style="width:100%;box-sizing:border-box"></div>`).join('')}<button class="btn btn-primary" type="submit">Save Names</button><p id="packageNamesStatus" role="status"></p></form></div></div></div>`);
+ document.getElementById('packageNamesForm').onsubmit=async e=>{
+ e.preventDefault();const names={};document.querySelectorAll('[data-package-key]').forEach(el=>names[el.dataset.packageKey]=el.value.trim());
+ const values=Object.values(names);if(values.some(v=>!v)||new Set(values.map(v=>v.toLowerCase())).size!==values.length){document.getElementById('packageNamesStatus').textContent='Use a different, non-empty name for each package.';return;}
+ const button=e.submitter;if(button)button.disabled=true;
+ try{await bookingsDocRef().set({packageNames:names},{merge:true});applyPackageNames(names);closeModal();renderPlanner();showToast('Package names saved.');}
+ catch(error){document.getElementById('packageNamesStatus').textContent='Could not save names. Please try again.';if(button)button.disabled=false;}
+ };
+}
+function exportAllBookingsExcel(){
+ if(!dataLoaded){showToast('Please wait for bookings to finish loading.');return;}
+ if(typeof XLSX==='undefined'){showToast('Export library failed to load. Please check your connection.');return;}
+ const wb=XLSX.utils.book_new();
+ const keys=[...new Set(bookings.flatMap(b=>Object.keys(b)))];
+ const headers=['Package Display Name',...keys];
+ const rows=bookings.map(b=>[(PACKAGES[b.package]||{}).label||b.package||'',...keys.map(k=>{const v=b[k];return v==null?'':typeof v==='object'?JSON.stringify(v):v;})]);
+ const ws=XLSX.utils.aoa_to_sheet([headers,...rows]);ws['!autofilter']={ref:ws['!ref']};ws['!cols']=headers.map(()=>({wch:24}));XLSX.utils.book_append_sheet(wb,ws,'All Bookings');
+ const payments=[['Booking ID','Client','Date','Type','Amount','Payment Details']];
+ bookings.forEach(b=>bookingPayments(b).forEach(p=>payments.push([b.id||'',b.clientName||'',p.date||'',p.type||p.stage||'',Number(p.amount)||0,JSON.stringify(p)])));
+ XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(payments),'Payments');
+ XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet([['Package Key','Package Name','Benefits'],...Object.entries(PACKAGES).map(([k,p])=>[k,p.label,packageInclusions[k]||''])]),'Packages');
+ XLSX.writeFile(wb,`All-Bookings-${new Date().toISOString().slice(0,10)}.xlsx`);
+}
+
+function updateBookingInclusions(){
+ const host=document.getElementById('bookingPackageInclusions'),key=document.getElementById('f_package')?.value;
+ if(host)host.textContent=typeof packageInclusions[key]==='string'?packageInclusions[key]:'';
+}
 function renderPlanner(){
  const host=document.getElementById('viewPlanner');if(!host)return;
  const pending=bookings.filter(b=>!b.date&&!b.cancelled&&!b.done);
  host.innerHTML=`<section class="planner-card"><div class="planner-heading"><h2>Open Date</h2><button class="btn btn-primary" onclick="openUndatedBooking()">+ Booking</button></div><p>Bookings waiting for an event date.</p>${pending.length?pending.map(b=>`<button class="planner-booking" data-booking="${escapeHtml(b.id)}"><strong>${escapeHtml(b.clientName)}</strong><span>${escapeHtml((PACKAGES[b.package]||PACKAGES.Others).label)} · Set date →</span></button>`).join(''):'<p class="planner-muted">No open-date bookings.</p>'}</section>
  <section class="planner-card"><div class="planner-heading"><h2>Notes & Reminders</h2><button class="btn btn-primary" onclick="openPlannerNote()">+ Note</button></div>${plannerNotes.filter(n=>plannerNoteUpcoming(n)).sort((a,b)=>a.eventAt.localeCompare(b.eventAt)).map(n=>`<div class="planner-note ${n.done?'planner-note-done':''}"><p class="planner-note-date">${escapeHtml(n.eventAt.replace('T',' · '))}</p><div class="planner-note-text">${escapeHtml(n.text)}</div><small>Reminder: ${escapeHtml(n.remindAt.replace('T',' · '))}${n.done?' · Completed':''}</small><div><button class="btn btn-ghost" data-note="${escapeHtml(n.id)}">Edit</button><button class="btn btn-primary" data-copy="${escapeHtml(n.id)}">Copy</button>${n.done?`<button class="btn btn-primary" data-reopen="${escapeHtml(n.id)}">Cancel Done</button>`:''}${!n.done?`<button class="btn btn-ghost" data-done="${escapeHtml(n.id)}">Done</button>`:''}<button class="btn btn-ghost-danger" data-delete="${escapeHtml(n.id)}">Delete</button></div></div>`).join('')||'<p class="planner-muted">No notes yet.</p>'}</section>`;
+
+ host.insertAdjacentHTML('beforeend', `<section class="planner-card"><div class="planner-heading"><h2>Package Settings</h2><button type="button" class="btn btn-ghost" onclick="openPackageNameSettings()">Edit Package Names</button></div><p class="planner-muted">Choose a booking package and edit what is included.</p><form id="packageSettingsForm"><div class="field"><label for="settingsPackage">Package</label><select id="settingsPackage" required><option value="">Select your package</option>${Object.entries(PACKAGES).map(([key,pkg])=>`<option value="${escapeHtml(key)}">${escapeHtml(pkg.label)}</option>`).join('')}</select></div><div class="field"><label for="settingsInclusions">Package inclusions</label><textarea id="settingsInclusions" rows="6" placeholder="Enter one inclusion per line" style="width:100%;box-sizing:border-box;padding:12px;border-radius:12px;border:1px solid var(--line);font:inherit"></textarea></div><button class="btn btn-primary" type="submit">Save Package</button><p id="packageSettingsStatus" role="status" class="planner-muted"></p></form></section>`);
+ const select=host.querySelector('#settingsPackage'),input=host.querySelector('#settingsInclusions');
+ const fill=()=>{input.disabled=!select.value;input.value=typeof packageInclusions[select.value]==='string'?packageInclusions[select.value]:'';};
+ select.onchange=fill;fill();
+ host.querySelector('#packageSettingsForm').onsubmit=async event=>{
+  event.preventDefault();if(!select.value)return;const key=select.value,value=input.value.trim(),button=event.submitter,status=host.querySelector('#packageSettingsStatus');
+  if(button)button.disabled=true;
+  try{await fsDb().runTransaction(async tx=>{const ref=bookingsDocRef(),snap=await tx.get(ref);tx.set(ref,{packageInclusions:{...(snap.data()?.packageInclusions||{}),[key]:value}},{merge:true});});packageInclusions[key]=value;status.textContent='Package saved.';}
+  catch(error){status.textContent='Could not save package. Please try again.';}
+  finally{if(button)button.disabled=false;}
+ };
 
  host.querySelectorAll('[data-copy]').forEach(el=>el.onclick=()=>copyPlannerNote(el.dataset.copy));
  host.querySelectorAll('[data-reopen]').forEach(el=>el.onclick=()=>reopenPlannerNote(el.dataset.reopen));
@@ -2260,6 +2317,9 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkPlann
 
 /* ================= VIEW SWITCHING ================= */
 function switchView(view){
+ const action=document.getElementById('headerPrimaryAction');
+ if(action){action.textContent=view==='planner'?'Export Excel':'+ New Booking';action.onclick=view==='planner'?exportAllBookingsExcel:()=>openAddBookingChoice();}
+
   if(view!=='home')document.getElementById('plannerPopup')?.remove();
   document.getElementById('viewPlanner').style.display=view==='planner'?'':'none';
   document.getElementById('navPlanner').classList.toggle('active',view==='planner');
@@ -3847,7 +3907,7 @@ function openBookingConfirmation(bookingId){
     ? `Discount (${b.discountValue}%)`
     : 'Discount';
 
-  const dateStr = formatDateLong(b.date) + (b.time ? `, at ${formatTimeRange(b)}` : '');
+  const dateStr = formatDateLong(b.date) + (formatTimeRange(b) ? `\n${formatTimeRange(b)}` : '');
   const paxNote = ` - ${pax} pax`;
 
   // ── Extra fee rows ────────────────────────────────────
@@ -3926,7 +3986,7 @@ function openBookingConfirmation(bookingId){
             padding:12px 14px;
           ">
             <div style="font-size:10.5px;font-weight:700;color:#8E8E93;margin-bottom:3px;">${escapeHtml(label)}</div>
-            <div style="font-size:13px;font-weight:600;color:${label==='Payment'?payColor:'#1C1C1E'};line-height:1.35;">${escapeHtml(String(val))}</div>
+            <div style="font-size:13px;font-weight:600;color:${label==='Payment'?payColor:'#1C1C1E'};line-height:1.35;">${escapeHtml(String(val)).replace(/\n/g,'<br>')}</div>
             ${label === 'Date' && b.retouch === 'Yes' ? `<div style="font-size:13px;font-weight:600;color:#1C1C1E;line-height:1.35;margin-top:6px;">Retouch at ${escapeHtml(retouchTimeLabel(b))}</div>` : ''}
           </div>`).join('')}
       </div>
@@ -3988,6 +4048,7 @@ function openBookingConfirmation(bookingId){
         font-size:12.5px;color:#8E8E93;font-style:italic;font-weight:500;
       ">"${escapeHtml(b.note)}"</div>` : ''}
 
+      ${packageBenefitsHtml(b)}
       <!-- Footer thank you -->
       <div style="
         text-align:center;padding:16px 10px 4px;
@@ -4156,7 +4217,7 @@ async function buildBcConfDataUrl(bookingId){
     const others    = Number(b.othersFee)      || 0;
     const remaining = b.depositStage === 'Full Payment' ? 0 : Math.max(total - (Number(b.depositAmount)||0), 0);
     const paxNote   = ` - ${pax} pax`;
-    const dateStr   = formatDateLong(b.date) + (b.time ? `, at ${formatTimeRange(b)}` : '');
+    const dateStr   = formatDateLong(b.date) + (formatTimeRange(b) ? `\n${formatTimeRange(b)}` : '');
 
     let payColor = '#8A6D56', payLabel = 'Payment', payValue = 'No Deposit Yet';
     if(b.depositStage === 'Full Payment'){ payColor='#1C1C1E'; payValue='✓ Paid in Full'; }
@@ -4173,7 +4234,7 @@ async function buildBcConfDataUrl(bookingId){
     ].filter(Boolean).map(([label, val]) => `
       <div style="padding:22px 24px;border-bottom:1px solid #E8D9C8;">
         <div style="font-size:20px;font-weight:700;color:#8A6D56;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.05em;">${escapeHtml(label)}</div>
-        <div style="font-size:26px;font-weight:600;color:#1C1C1E;line-height:1.3;">${escapeHtml(String(val))}</div>
+        <div style="font-size:26px;font-weight:600;color:#1C1C1E;line-height:1.3;">${escapeHtml(String(val)).replace(/\n/g,'<br>')}</div>
       </div>`).join('');
 
     const feeRows = [
@@ -4255,6 +4316,7 @@ async function buildBcConfDataUrl(bookingId){
         <div style="background:linear-gradient(135deg,#FFF4E3,#F5ECE5);border:2px solid #E8D6C4;border-radius:28px;padding:24px 36px;font-size:24px;color:#793B14;font-weight:600;box-shadow:inset 0 2px 0 #FFFFFF99,0 5px 0 #DA8E4A25,0 10px 18px #D5813325;">
           "${escapeHtml(b.note)}"
         </div>` : ''}
+        ${packageBenefitsHtml(b,true)}
 
         <!-- Footer -->
         <div style="text-align:center;padding:24px 0 8px;border-top:1px solid rgba(142,142,147,0.30);">
@@ -4676,7 +4738,7 @@ function openBookingForm(bookingId, presetDate, prefillData){
             </div>
 
             <div class="package-retouch-row">
-              <div class="field"><label>Package Type</label><select id="f_package" onchange="updateTeamCostVisibility()">${pkgOptions}</select></div>
+              <div class="field"><label>Package Type</label><select id="f_package" onchange="updateTeamCostVisibility();updateBookingInclusions()">${pkgOptions}</select><div id="bookingPackageInclusions" style="white-space:pre-line;font-size:12px;margin-top:8px;color:var(--muted)"></div></div>
               <div class="field"><label for="f_retouch">Retouch</label><label class="switch"><input type="checkbox" id="f_retouch" role="switch" ${b.retouch === 'Yes' ? 'checked' : ''} onchange="toggleRetouchFields()"><span class="switch-slider"></span></label></div>
             </div>
             <div class="row2" id="retouchTimes" style="display:${b.retouch === 'Yes' ? 'grid' : 'none'}">
@@ -4837,7 +4899,9 @@ function openBookingForm(bookingId, presetDate, prefillData){
       submitBookingForm(e, editingIdForBind);
     });
   }
-  // Set initial Team Cost visibility based on current values
+  // Set initial form state.
+  syncStartTimeRequired();
+  updateBookingInclusions();
   updateTeamCostVisibility();
 }
 
@@ -4856,7 +4920,7 @@ async function submitBookingForm(evt, editingId){
   const data = {
     date: document.getElementById('f_openDate')?.checked ? '' : document.getElementById('f_date').value,
     time: document.getElementById('f_time').value,
-    timeEnd: document.getElementById('f_timeEnd').value,
+    timeEnd: document.getElementById('f_allDay').checked ? '' : document.getElementById('f_timeEnd').value,
     allDay: document.getElementById('f_allDay').checked,
     handledBy: document.getElementById('f_handledBy').value,
     package: document.getElementById('f_package').value,
@@ -5217,7 +5281,7 @@ function openInvoice(bookingId, forcePelunasan){
               <b>${escapeHtml(b.clientName)}</b><br>
               ${escapeHtml(b.phone) || '-'}<br>
               ${escapeHtml(b.venue) || '-'}<br>
-              Event Date: ${formatDateLong(b.date)}${b.time ? ', at ' + escapeHtml(formatTimeRange(b)) : ''}
+              Event Date: ${formatDateLong(b.date)}${formatTimeRange(b) ? ', at ' + escapeHtml(formatTimeRange(b)) : ''}
             </div>
 
             <div class="inv-block-label" style="margin-top:20px">Service Details</div><table class="inv-table">
@@ -5272,7 +5336,7 @@ async function buildInvoiceCanvas(bookingId, forcePelunasan){
   const isLunas    = !packagePriceMissing(b) && b.depositStage === 'Full Payment';
   const invoiceTitle = forcePelunasan ? 'Final Payment Invoice' : (isLunas ? 'Paid in Full Invoice' : 'Invoice');
   const todayStr   = formatDateLong(toDateStr(today.getFullYear(), today.getMonth(), today.getDate()));
-  const eventDate  = formatDateLong(b.date) + (b.time ? `, at ${formatTimeRange(b)}` : '');
+  const eventDate  = formatDateLong(b.date) + (formatTimeRange(b) ? `, at ${formatTimeRange(b)}` : '');
 
   let remaining = totalDue;
   let depositLabel = '', depositValue = '';
