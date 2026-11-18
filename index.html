@@ -1505,7 +1505,14 @@ let bookingsPackageFilter = 'all';
 let plannerNotes = [];
 let packageInclusions = {};
 const defaultPackageLabels=Object.fromEntries(Object.entries(PACKAGES).map(([k,p])=>[k,p.label]));
-function applyPackageNames(names){Object.entries(PACKAGES).forEach(([key,p])=>{p.label=typeof names?.[key]==='string'&&names[key].trim()?names[key]:defaultPackageLabels[key];});}
+function applyPackageNames(names){
+ Object.keys(PACKAGES).filter(key=>!Object.hasOwn(defaultPackageLabels,key)).forEach(key=>delete PACKAGES[key]);
+ Object.entries(names||{}).forEach(([key,label])=>{
+  if(key.startsWith('custom_') && typeof label==='string' && label.trim())PACKAGES[key]={label:label.trim(),color:'#8A6D56',tint:'#8A6D5618'};
+ });
+ Object.entries(PACKAGES).forEach(([key,p])=>{p.label=typeof names?.[key]==='string'&&names[key].trim()?names[key].trim():(defaultPackageLabels[key]||p.label);});
+}
+
 let reportFilter = 'all';
 let reportPeriodStart = '';
 let reportPeriodEnd = '';
@@ -2249,13 +2256,28 @@ function packageBenefitsHtml(b,large=false){
  return `<section style="margin:16px 0;padding:${large?'28px 36px':'14px 16px'};border:1px solid #E8D6C4;border-radius:18px;background:#fff5e9;color:#604b39;font-size:${large?'24px':'13px'};line-height:1.5"><strong>Package Benefits</strong><div style="white-space:pre-wrap;overflow-wrap:anywhere;margin-top:8px">${escapeHtml(value)}</div></section>`;
 }
 function openPackageNameSettings(){
- showModal(`<div class="overlay"><div class="modal w-md"><div class="modal-head"><h2>Edit Package Names</h2><button class="modal-close" onclick="closeModal()">✕</button></div><div class="modal-body"><form id="packageNamesForm">${Object.entries(PACKAGES).map(([key,p])=>`<div class="field"><label>${escapeHtml(defaultPackageLabels[key])}</label><input data-package-key="${escapeHtml(key)}" value="${escapeHtml(p.label)}" required maxlength="100" style="width:100%;box-sizing:border-box"></div>`).join('')}<button class="btn btn-primary" type="submit">Save Names</button><p id="packageNamesStatus" role="status"></p></form></div></div></div>`);
+ showModal(`<div class="overlay"><div class="modal w-md"><div class="modal-head"><h2>Edit Package</h2><button class="modal-close" onclick="closeModal()">✕</button></div><div class="modal-body"><form id="packageNamesForm">
+ <div class="field"><label for="packageEditSelection">Package</label><select id="packageEditSelection" required><option value="">Select your package</option><option value="__new">+ Add Package</option>${Object.entries(PACKAGES).map(([key,p])=>`<option value="${escapeHtml(key)}">${escapeHtml(p.label)}</option>`).join('')}</select></div>
+ <div class="field"><label for="packageEditName">Package Name</label><input id="packageEditName" required maxlength="100" disabled style="width:100%;box-sizing:border-box"></div>
+ <div class="field"><label for="packageEditBenefits">Package inclusions</label><textarea id="packageEditBenefits" rows="5" disabled placeholder="Enter one inclusion per line" style="width:100%;box-sizing:border-box;font:inherit"></textarea></div>
+ <button id="packageEditSave" class="btn btn-primary" type="submit" disabled>Save Package</button><p id="packageNamesStatus" role="status"></p></form></div></div></div>`);
+ const select=document.getElementById('packageEditSelection'),name=document.getElementById('packageEditName'),benefits=document.getElementById('packageEditBenefits'),button=document.getElementById('packageEditSave'),status=document.getElementById('packageNamesStatus');
+ select.onchange=()=>{const key=select.value;name.disabled=benefits.disabled=button.disabled=!key;name.value=PACKAGES[key]?.label||'';benefits.value=packageInclusions[key]||'';button.textContent=key==='__new'?'Add Package':'Save Package';status.textContent='';};
  document.getElementById('packageNamesForm').onsubmit=async e=>{
- e.preventDefault();const names={};document.querySelectorAll('[data-package-key]').forEach(el=>names[el.dataset.packageKey]=el.value.trim());
- const values=Object.values(names);if(values.some(v=>!v)||new Set(values.map(v=>v.toLowerCase())).size!==values.length){document.getElementById('packageNamesStatus').textContent='Use a different, non-empty name for each package.';return;}
- const button=e.submitter;if(button)button.disabled=true;
- try{await bookingsDocRef().set({packageNames:names},{merge:true});applyPackageNames(names);closeModal();renderPlanner();showToast('Package names saved.');}
- catch(error){document.getElementById('packageNamesStatus').textContent='Could not save names. Please try again.';if(button)button.disabled=false;}
+ e.preventDefault();if(!select.value)return;
+ const label=name.value.trim(),value=benefits.value.trim(),key=select.value==='__new'?'custom_'+uid():select.value;
+ if(!label){status.textContent='Please enter a package name.';return;}
+ button.disabled=true;
+ try{
+ const saved=await fsDb().runTransaction(async tx=>{
+  const ref=bookingsDocRef(),snap=await tx.get(ref),data=snap.data()||{};
+  const names={...defaultPackageLabels,...data.packageNames};
+  if(Object.entries(names).some(([k,v])=>k!==key&&String(v).trim().toLowerCase()===label.toLowerCase()))throw new Error('duplicate-package');
+  names[key]=label;const inclusions={...data.packageInclusions,[key]:value};
+  tx.set(ref,{packageNames:names,packageInclusions:inclusions},{merge:true});return {names,inclusions};
+ });
+ applyPackageNames(saved.names);packageInclusions=saved.inclusions;closeModal();renderPlanner();showToast('Package saved.');
+ }catch(error){status.textContent=error.message==='duplicate-package'?'A package with this name already exists.':'Could not save package. Please try again.';button.disabled=false;}
  };
 }
 function exportAllBookingsExcel(){
@@ -2283,7 +2305,7 @@ function renderPlanner(){
  host.innerHTML=`<section class="planner-card"><div class="planner-heading"><h2>Open Date</h2><button class="btn btn-primary" onclick="openUndatedBooking()">+ Booking</button></div><p>Bookings waiting for an event date.</p>${pending.length?pending.map(b=>`<button class="planner-booking" data-booking="${escapeHtml(b.id)}"><strong>${escapeHtml(b.clientName)}</strong><span>${escapeHtml((PACKAGES[b.package]||PACKAGES.Others).label)} · Set date →</span></button>`).join(''):'<p class="planner-muted">No open-date bookings.</p>'}</section>
  <section class="planner-card"><div class="planner-heading"><h2>Notes & Reminders</h2><button class="btn btn-primary" onclick="openPlannerNote()">+ Note</button></div>${plannerNotes.filter(n=>plannerNoteUpcoming(n)).sort((a,b)=>a.eventAt.localeCompare(b.eventAt)).map(n=>`<div class="planner-note ${n.done?'planner-note-done':''}"><p class="planner-note-date">${escapeHtml(n.eventAt.replace('T',' · '))}</p><div class="planner-note-text">${escapeHtml(n.text)}</div><small>Reminder: ${escapeHtml(n.remindAt.replace('T',' · '))}${n.done?' · Completed':''}</small><div><button class="btn btn-ghost" data-note="${escapeHtml(n.id)}">Edit</button><button class="btn btn-primary" data-copy="${escapeHtml(n.id)}">Copy</button>${n.done?`<button class="btn btn-primary" data-reopen="${escapeHtml(n.id)}">Cancel Done</button>`:''}${!n.done?`<button class="btn btn-ghost" data-done="${escapeHtml(n.id)}">Done</button>`:''}<button class="btn btn-ghost-danger" data-delete="${escapeHtml(n.id)}">Delete</button></div></div>`).join('')||'<p class="planner-muted">No notes yet.</p>'}</section>`;
 
- host.insertAdjacentHTML('beforeend', `<section class="planner-card"><div class="planner-heading"><h2>Package Settings</h2><button type="button" class="btn btn-ghost" onclick="openPackageNameSettings()">Edit Package Names</button></div><p class="planner-muted">Choose a booking package and edit what is included.</p><form id="packageSettingsForm"><div class="field"><label for="settingsPackage">Package</label><select id="settingsPackage" required><option value="">Select your package</option>${Object.entries(PACKAGES).map(([key,pkg])=>`<option value="${escapeHtml(key)}">${escapeHtml(pkg.label)}</option>`).join('')}</select></div><div class="field"><label for="settingsInclusions">Package inclusions</label><textarea id="settingsInclusions" rows="6" placeholder="Enter one inclusion per line" style="width:100%;box-sizing:border-box;padding:12px;border-radius:12px;border:1px solid var(--line);font:inherit"></textarea></div><button class="btn btn-primary" type="submit">Save Package</button><p id="packageSettingsStatus" role="status" class="planner-muted"></p></form></section>`);
+ host.insertAdjacentHTML('beforeend', `<section class="planner-card"><div class="planner-heading"><h2>Package Settings</h2><button type="button" class="btn btn-ghost" onclick="openPackageNameSettings()">Edit Package</button></div><p class="planner-muted">Choose a booking package and edit what is included.</p><form id="packageSettingsForm"><div class="field"><label for="settingsPackage">Package</label><select id="settingsPackage" required><option value="">Select your package</option>${Object.entries(PACKAGES).map(([key,pkg])=>`<option value="${escapeHtml(key)}">${escapeHtml(pkg.label)}</option>`).join('')}</select></div><div class="field"><label for="settingsInclusions">Package inclusions</label><textarea id="settingsInclusions" rows="6" placeholder="Enter one inclusion per line" style="width:100%;box-sizing:border-box;padding:12px;border-radius:12px;border:1px solid var(--line);font:inherit"></textarea></div><button class="btn btn-primary" type="submit">Save Package</button><p id="packageSettingsStatus" role="status" class="planner-muted"></p></form></section>`);
  const select=host.querySelector('#settingsPackage'),input=host.querySelector('#settingsInclusions');
  const fill=()=>{input.disabled=!select.value;input.value=typeof packageInclusions[select.value]==='string'?packageInclusions[select.value]:'';};
  select.onchange=fill;fill();
