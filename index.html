@@ -2258,7 +2258,7 @@ function renderBookingSourceAnalysis(){
 
 
 function packageBenefitsHtml(b,large=false){
- const value=packageInclusions[b.package];
+ const value=bookingInclusions(b);
  if(typeof value!=='string'||!value.trim())return '';
  return `<section style="margin:16px 0;padding:${large?'28px 36px':'14px 16px'};border:1px solid #E8D6C4;border-radius:18px;background:#fff5e9;color:#604b39;font-size:${large?'24px':'13px'};line-height:1.5"><strong>Package Benefits</strong><div style="white-space:pre-wrap;overflow-wrap:anywhere;margin-top:8px">${escapeHtml(value)}</div></section>`;
 }
@@ -2321,9 +2321,22 @@ function exportAllBookingsExcel(){
  XLSX.writeFile(wb,`All-Bookings-${new Date().toISOString().slice(0,10)}.xlsx`);
 }
 
-function updateBookingInclusions(){
+function bookingInclusions(b){
+ return typeof b.packageInclusions==='string'?b.packageInclusions:(typeof packageInclusions[b.package]==='string'?packageInclusions[b.package]:'');
+}
+function updateBookingInclusions(initialBooking){
  const host=document.getElementById('bookingPackageInclusions'),key=document.getElementById('f_package')?.value;
- if(host)host.textContent=typeof packageInclusions[key]==='string'?packageInclusions[key]:'';
+ if(!host)return;
+ if(!host.inclusionDrafts)host.inclusionDrafts={};
+ const previous=host.querySelector('textarea');
+ if(previous&&host.dataset.packageKey)host.inclusionDrafts[host.dataset.packageKey]=previous.value;
+ if(initialBooking&&typeof initialBooking.packageInclusions==='string')host.inclusionDrafts[key]=initialBooking.packageInclusions;
+ const value=Object.hasOwn(host.inclusionDrafts,key)?host.inclusionDrafts[key]:bookingInclusions({package:key});
+ host.dataset.packageKey=key;
+ host.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><strong>Package inclusions</strong><button type="button" class="btn btn-ghost" id="editBookingInclusions">Edit</button></div><div id="bookingInclusionsText" style="white-space:pre-wrap;overflow-wrap:anywhere"></div><textarea id="f_packageInclusions" rows="7" hidden style="width:100%;box-sizing:border-box;font:inherit;line-height:1.5" aria-label="Package inclusions for this booking"></textarea><small>Saved with this booking only.</small>`;
+ const input=host.querySelector('textarea'),preview=host.querySelector('#bookingInclusionsText'),button=host.querySelector('#editBookingInclusions');
+ input.value=value;preview.textContent=value||'No inclusions yet.';
+ button.onclick=()=>{input.hidden=!input.hidden;preview.hidden=!input.hidden;button.textContent=input.hidden?'Edit':'Done';preview.textContent=input.value||'No inclusions yet.';if(!input.hidden)input.focus();};
 }
 function renderPlanner(){
  const host=document.getElementById('viewPlanner');if(!host)return;
@@ -4939,7 +4952,7 @@ function openBookingForm(bookingId, presetDate, prefillData){
   }
   // Set initial form state.
   syncStartTimeRequired();
-  updateBookingInclusions();
+  updateBookingInclusions(b);
   updateTeamCostVisibility();
 }
 
@@ -4962,6 +4975,7 @@ async function submitBookingForm(evt, editingId){
     allDay: document.getElementById('f_allDay').checked,
     handledBy: document.getElementById('f_handledBy').value,
     package: document.getElementById('f_package').value,
+    packageInclusions: document.getElementById('f_packageInclusions').value.trim(),
     clientName: document.getElementById('f_clientName').value.trim(),
     hairdo: document.getElementById('f_hairdo').value.trim(),
     hairdoPrice: (() => {
@@ -5251,7 +5265,7 @@ function ensureInvoiceNumber(b){
 }
 
 function invoicePackageInclusionsHtml(b,large=false){
- const text=packageInclusions[b.package];
+ const text=bookingInclusions(b);
  if(typeof text!=='string'||!text.trim())return '';
  return `<div style="font-size:${large?'22px':'11px'};font-weight:400;color:#807366;line-height:1.5;margin-top:${large?'12px':'6px'};white-space:pre-wrap;overflow-wrap:anywhere">${escapeHtml(text.trim())}</div>`;
 }
