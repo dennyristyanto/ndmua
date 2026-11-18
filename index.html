@@ -5250,6 +5250,12 @@ function ensureInvoiceNumber(b){
   return b.invoiceNumber;
 }
 
+function invoicePackageInclusionsHtml(b,large=false){
+ const text=packageInclusions[b.package];
+ if(typeof text!=='string'||!text.trim())return '';
+ return `<div style="font-size:${large?'22px':'11px'};font-weight:400;color:#807366;line-height:1.5;margin-top:${large?'12px':'6px'};white-space:pre-wrap;overflow-wrap:anywhere">${escapeHtml(text.trim())}</div>`;
+}
+
 function openInvoice(bookingId, forcePelunasan){
   if(isTrialMakeUp(bookings.find(x=>x.id===bookingId)||{}))return;
   const b = bookings.find(x => x.id === bookingId);
@@ -5323,7 +5329,7 @@ function openInvoice(bookingId, forcePelunasan){
             </div>
 
             <div class="inv-block-label" style="margin-top:20px">Service Details</div><table class="inv-table">
-              <tr><td>${escapeHtml(pkg.label)}<div style="font-size:11px;color:#807366;margin-top:4px">${Math.max(1,Number(b.totalPax)||1)} pax</div></td><td class="r">${packagePriceMissing(b) ? packagePriceWarning() : formatRupiah(bookingBasePrice(b))}</td></tr>
+              <tr><td>${escapeHtml(pkg.label)}<div style="font-size:11px;color:#807366;margin-top:4px">${Math.max(1,Number(b.totalPax)||1)} pax</div>${invoicePackageInclusionsHtml(b)}</td><td class="r">${packagePriceMissing(b) ? packagePriceWarning() : formatRupiah(bookingBasePrice(b))}</td></tr>
               ${extraRows}
             </table>
 
@@ -5451,7 +5457,7 @@ async function buildInvoiceCanvas(bookingId, forcePelunasan){
       <div style="background:#FFEBD3;border:2px solid rgba(142,142,147,0.38);border-radius:22px;padding:28px 36px;">
         <div style="font-size:22px;font-weight:700;color:#8A6D56;margin-bottom:18px">Service Details</div><!-- Package -->
         <div style="display:flex;justify-content:space-between;align-items:baseline;padding:0 0 14px;border-bottom:1px solid rgba(142,142,147,0.28);">
-          <span style="font-size:28px;font-weight:600;color:#1C1C1E;">${escapeHtml(pkg.label)}<span style="display:block;font-size:22px;font-weight:400;color:#807366;margin-top:8px">${Math.max(1,Number(b.totalPax)||1)} pax</span></span>
+          <span style="font-size:28px;font-weight:600;color:#1C1C1E;">${escapeHtml(pkg.label)}<span style="display:block;font-size:22px;font-weight:400;color:#807366;margin-top:8px">${Math.max(1,Number(b.totalPax)||1)} pax</span>${invoicePackageInclusionsHtml(b,true)}</span>
           <span style="font-size:28px;font-weight:700;color:#1C1C1E;white-space:nowrap;padding-left:16px;">${formatRupiah(bookingBasePrice(b))}</span>
         </div>
         ${extraLines}
