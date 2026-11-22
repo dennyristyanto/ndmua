@@ -1258,6 +1258,7 @@ body > .confirmation-overlay > .modal{margin:0!important;position:relative!impor
         <div id="loginError" class="login-error" style="display:none;">Email atau password salah.</div>
         <button type="submit" id="loginSubmitBtn" class="btn btn-primary btn-block" style="margin-top:8px;height:48px;font-size:15px;">Login</button>
       </form>
+      <a href="demo.html" class="btn btn-ghost btn-block" style="margin-top:12px">Open Demo — Sample Data</a>
     </div>
 
     <div id="signupView" style="display:none;">
@@ -2342,7 +2343,7 @@ function renderPlanner(){
  const host=document.getElementById('viewPlanner');if(!host)return;
  const pending=bookings.filter(b=>!b.date&&!b.cancelled&&!b.done);
  host.innerHTML=`<section class="planner-card"><div class="planner-heading"><h2>Open Date</h2><button class="btn btn-primary" onclick="openUndatedBooking()">+ Booking</button></div><p>Bookings waiting for an event date.</p>${pending.length?pending.map(b=>`<button class="planner-booking" data-booking="${escapeHtml(b.id)}"><strong>${escapeHtml(b.clientName)}</strong><span>${escapeHtml((PACKAGES[b.package]||PACKAGES.Others).label)} · Set date →</span></button>`).join(''):'<p class="planner-muted">No open-date bookings.</p>'}</section>
- <section class="planner-card"><div class="planner-heading"><h2>Notes & Reminders</h2><button class="btn btn-primary" onclick="openPlannerNote()">+ Note</button></div>${plannerNotes.filter(n=>plannerNoteUpcoming(n)).sort((a,b)=>a.eventAt.localeCompare(b.eventAt)).map(n=>`<div class="planner-note ${n.done?'planner-note-done':''}"><p class="planner-note-date">${escapeHtml(n.eventAt.replace('T',' · '))}</p><div class="planner-note-text">${escapeHtml(n.text)}</div><small>Reminder: ${escapeHtml(n.remindAt.replace('T',' · '))}${n.done?' · Completed':''}</small><div><button class="btn btn-ghost" data-note="${escapeHtml(n.id)}">Edit</button><button class="btn btn-primary" data-copy="${escapeHtml(n.id)}">Copy</button>${n.done?`<button class="btn btn-primary" data-reopen="${escapeHtml(n.id)}">Cancel Done</button>`:''}${!n.done?`<button class="btn btn-ghost" data-done="${escapeHtml(n.id)}">Done</button>`:''}<button class="btn btn-ghost-danger" data-delete="${escapeHtml(n.id)}">Delete</button></div></div>`).join('')||'<p class="planner-muted">No notes yet.</p>'}</section>`;
+ <section class="planner-card"><div class="planner-heading"><h2>Notes & Reminders</h2><button class="btn btn-primary" onclick="openPlannerNote()">+ Note</button></div>${[...plannerNotes].sort((a,b)=>a.eventAt.localeCompare(b.eventAt)).map(n=>`<div class="planner-note ${n.done?'planner-note-done':''}"><p class="planner-note-date">${escapeHtml(n.eventAt.replace('T',' · '))}</p><div class="planner-note-text">${escapeHtml(n.text)}</div><small>Reminder: ${escapeHtml(n.remindAt.replace('T',' · '))}${n.done?' · Completed':''}</small><div><button class="btn btn-ghost" data-note="${escapeHtml(n.id)}">Edit</button><button class="btn btn-primary" data-copy="${escapeHtml(n.id)}">Copy</button>${n.done?`<button class="btn btn-primary" data-reopen="${escapeHtml(n.id)}">Cancel Done</button>`:''}${!n.done?`<button class="btn btn-ghost" data-done="${escapeHtml(n.id)}">Done</button>`:''}<button class="btn btn-ghost-danger" data-delete="${escapeHtml(n.id)}">Delete</button></div></div>`).join('')||'<p class="planner-muted">No notes yet.</p>'}</section>`;
 
  host.insertAdjacentHTML('beforeend', `<section class="planner-card"><div class="planner-heading"><h2>Package Settings</h2><button type="button" class="btn btn-ghost" onclick="openPackageNameSettings()">Edit Package</button></div><p class="planner-muted">Manage package names, inclusions and dropdown order.</p></section>`);
 
@@ -2352,7 +2353,7 @@ function renderPlanner(){
  host.querySelectorAll('[data-booking]').forEach(el=>el.onclick=()=>openBookingForm(el.dataset.booking));host.querySelectorAll('[data-note]').forEach(el=>el.onclick=()=>openPlannerNote(el.dataset.note));host.querySelectorAll('[data-done]').forEach(el=>el.onclick=()=>completePlannerNote(el.dataset.done));
 }
 function openPlannerNote(id){const n=plannerNotes.find(n=>n.id===id)||{};
- showModal(`<div class="overlay"><div class="modal"><div class="modal-head"><h2>${id?'Edit Note':'New Note'}</h2><button class="modal-close" onclick="closeModal()">✕</button></div><form class="modal-body" id="plannerNoteForm"><div class="field"><label>Note</label><textarea id="pnText" required maxlength="2000">${escapeHtml(n.text||'')}</textarea></div><div class="field"><label>Date & Time</label><input id="pnEvent" type="datetime-local" required value="${n.eventAt||''}"></div><div class="field"><label>Remind Me At</label><input id="pnReminder" type="datetime-local" required value="${n.remindAt||''}"></div><p>Reminder appears on Home when the app is open. Times use this device’s local time.</p><div class="planner-form-actions"><button class="btn btn-ghost" type="button" onclick="closeModal()">Cancel</button><button class="btn btn-primary" type="submit">Save Note</button></div></form></div></div>`);
+ showModal(`<div class="overlay"><div class="modal"><div class="modal-head"><h2>${id?'Edit Note':'New Note'}</h2><button class="modal-close" onclick="closeModal()">✕</button></div><form class="modal-body" id="plannerNoteForm"><div class="field"><label>Note</label><textarea id="pnText" required maxlength="2000">${escapeHtml(n.text||'')}</textarea></div><div class="field"><label>Event schedule</label><input id="pnEvent" type="datetime-local" required value="${n.eventAt||''}"></div><div class="field"><label>Remind Me At</label><input id="pnReminder" type="datetime-local" required value="${n.remindAt||''}"></div><p>Reminder appears on Home when the app is open. Times use this device’s local time.</p><div class="planner-form-actions"><button class="btn btn-ghost" type="button" onclick="closeModal()">Cancel</button><button class="btn btn-primary" type="submit">Save Note</button></div></form></div></div>`);
  document.getElementById('plannerNoteForm').onsubmit=async e=>{e.preventDefault();const note={id:id||uid(),text:document.getElementById('pnText').value.trim(),eventAt:document.getElementById('pnEvent').value,remindAt:document.getElementById('pnReminder').value,done:!!n.done};if(!note.text)return;const old=plannerNotes;plannerNotes=[...old.filter(x=>x.id!==note.id),note];try{await savePlannerNotes();closeModal();renderPlanner();checkPlannerReminders();}catch(err){plannerNotes=old;showToast('Could not save note. Please try again.');}};
 }
 async function completePlannerNote(id){const n=plannerNotes.find(n=>n.id===id);if(!n)return;n.done=true;try{await savePlannerNotes();document.getElementById('plannerPopup')?.remove();renderPlanner();checkPlannerReminders();}catch(e){n.done=false;showToast('Could not save. Please try again.');}}
@@ -5762,8 +5763,12 @@ async function initAuth(){
           renderSummary();
           renderBookingsList();
         }catch(e){
-          console.error('Auth state error:', e);
+          console.error('Auth state error:', e.code || 'unknown');
           showLoginScreen();
+          bindAuthEventsOnce();
+          const errorBox=document.getElementById('loginError');
+          errorBox.textContent='Login berhasil, tetapi profil/data aplikasi tidak dapat dibuka. Kode: '+(e.code||'unknown')+'.';
+          errorBox.style.display='block';
         }
       } else {
         showLoginScreen();
@@ -5801,11 +5806,17 @@ async function attemptLogin(evt){
     await fsAuth().signInWithEmailAndPassword(email, pass);
     errEl.style.display = 'none';
   }catch(e){
-    let msg = 'Email atau password salah.';
+    let msg = 'Login belum berhasil. Kode: '+(e.code||'unknown')+'. Silakan kirim kode ini untuk pemeriksaan.';
     if(e.code === 'auth/user-not-found') msg = 'Email tidak terdaftar.';
     else if(e.code === 'auth/wrong-password') msg = 'Password salah.';
     else if(e.code === 'auth/invalid-email') msg = 'Format email tidak valid.';
     else if(e.code === 'auth/too-many-requests') msg = 'Terlalu banyak percobaan. Coba lagi nanti.';
+    else if(e.code === 'auth/invalid-login-credentials' || e.code === 'auth/invalid-credential') msg = 'Email atau password tidak dikenali oleh Firebase.';
+    else if(e.code === 'auth/network-request-failed') msg = 'Tidak dapat terhubung ke layanan login. Periksa koneksi internet. (auth/network-request-failed)';
+    else if(e.code === 'auth/web-storage-unsupported') msg = 'Browser tidak mengizinkan penyimpanan sesi login. Buka aplikasi melalui alamat HTTPS dan izinkan penyimpanan situs. (auth/web-storage-unsupported)';
+    else if(e.code === 'auth/invalid-api-key' || e.code === 'auth/app-not-authorized') msg = 'Konfigurasi akses Firebase ditolak. Kode: '+e.code;
+    else if(e.code === 'auth/operation-not-allowed') msg = 'Login email/password belum diaktifkan pada Firebase. (auth/operation-not-allowed)';
+    else if(e.code === 'auth/user-disabled') msg = 'Akun ini dinonaktifkan. (auth/user-disabled)';
     errEl.textContent = msg;
     errEl.style.display = 'block';
   }finally{
