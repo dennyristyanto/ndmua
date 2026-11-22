@@ -1224,7 +1224,7 @@ body > .confirmation-overlay > .modal{margin:0!important;position:relative!impor
 #appRoot>.bottom-nav .nav-btn.active svg{transform:translateY(-2px) scale(1.23);stroke-width:2.3!important}
 @media(prefers-reduced-motion:reduce){#appRoot>.bottom-nav .nav-btn,#appRoot>.bottom-nav .nav-btn svg{transition:none!important}}
 </style>
-</head>
+<style id="planner-checklist-style">.pn-check-row{display:flex;align-items:center;gap:10px;margin:8px 0}.pn-check-row input[type=checkbox]{appearance:none;-webkit-appearance:none;width:24px;height:24px;min-width:24px;border:2px solid #c9a585;border-radius:50%;background:#fff;cursor:pointer;display:grid;place-content:center}.pn-check-row input[type=checkbox]:checked{background:#ff9847;border-color:#ff9847}.pn-check-row input[type=checkbox]:checked:after{content:'✓';color:white;font-size:17px;font-weight:bold}.pn-check-row input[type=checkbox]:focus-visible{outline:2px solid #875c38;outline-offset:3px}.pn-check-row:has(input:checked) .pn-item-text{text-decoration:line-through;opacity:.6}.pn-check-row .pn-item-text{flex:1;min-width:0;overflow-wrap:anywhere}.pn-check-row input.pn-item-text{width:100%;padding:10px}.pn-check-row button{flex-shrink:0}</style></head>
 <body>
 
 <!-- ═══════════════ LOGIN SCREEN ═══════════════ -->
@@ -2220,7 +2220,7 @@ async function removePlannerNote(id){
  try{await savePlannerNotes();document.getElementById('plannerPopup')?.remove();renderPlanner();checkPlannerReminders();}
  catch(error){plannerNotes=previous;showToast('Could not delete note. Please try again.');}
 }
-function plannerNoteCopyText(note){return note.eventAt.replace('T',' · ')+'\n\n'+note.text;}
+function plannerNoteCopyText(note){return note.eventAt.replace('T',' · ')+'\n\n'+(note.checklist||[]).map(item=>(item.done?'☑ ':'○ ')+item.text).join('\n')+(note.text?'\n\n'+note.text:'');}
 async function copyPlannerNote(id){
  const note=plannerNotes.find(n=>n.id===id);if(!note)return;
  const text=plannerNoteCopyText(note);
@@ -2343,18 +2343,37 @@ function renderPlanner(){
  const host=document.getElementById('viewPlanner');if(!host)return;
  const pending=bookings.filter(b=>!b.date&&!b.cancelled&&!b.done);
  host.innerHTML=`<section class="planner-card"><div class="planner-heading"><h2>Open Date</h2><button class="btn btn-primary" onclick="openUndatedBooking()">+ Booking</button></div><p>Bookings waiting for an event date.</p>${pending.length?pending.map(b=>`<button class="planner-booking" data-booking="${escapeHtml(b.id)}"><strong>${escapeHtml(b.clientName)}</strong><span>${escapeHtml((PACKAGES[b.package]||PACKAGES.Others).label)} · Set date →</span></button>`).join(''):'<p class="planner-muted">No open-date bookings.</p>'}</section>
- <section class="planner-card"><div class="planner-heading"><h2>Notes & Reminders</h2><button class="btn btn-primary" onclick="openPlannerNote()">+ Note</button></div>${[...plannerNotes].sort((a,b)=>a.eventAt.localeCompare(b.eventAt)).map(n=>`<div class="planner-note ${n.done?'planner-note-done':''}"><p class="planner-note-date">${escapeHtml(n.eventAt.replace('T',' · '))}</p><div class="planner-note-text">${escapeHtml(n.text)}</div><small>Reminder: ${escapeHtml(n.remindAt.replace('T',' · '))}${n.done?' · Completed':''}</small><div><button class="btn btn-ghost" data-note="${escapeHtml(n.id)}">Edit</button><button class="btn btn-primary" data-copy="${escapeHtml(n.id)}">Copy</button>${n.done?`<button class="btn btn-primary" data-reopen="${escapeHtml(n.id)}">Cancel Done</button>`:''}${!n.done?`<button class="btn btn-ghost" data-done="${escapeHtml(n.id)}">Done</button>`:''}<button class="btn btn-ghost-danger" data-delete="${escapeHtml(n.id)}">Delete</button></div></div>`).join('')||'<p class="planner-muted">No notes yet.</p>'}</section>`;
+ <section class="planner-card"><div class="planner-heading"><h2>Notes & Reminders</h2><button class="btn btn-primary" onclick="openPlannerNote()">+ Note</button></div>${[...plannerNotes].sort((a,b)=>a.eventAt.localeCompare(b.eventAt)).map(n=>`<div class="planner-note ${n.done?'planner-note-done':''}"><p class="planner-note-date">${escapeHtml(n.eventAt.replace('T',' · '))}</p>${plannerChecklistHtml(n)}<div class="planner-note-text">${escapeHtml(n.text)}</div><small>Reminder: ${escapeHtml(n.remindAt.replace('T',' · '))}${n.done?' · Completed':''}</small><div><button class="btn btn-ghost" data-note="${escapeHtml(n.id)}">Edit</button><button class="btn btn-primary" data-copy="${escapeHtml(n.id)}">Copy</button>${n.done?`<button class="btn btn-primary" data-reopen="${escapeHtml(n.id)}">Cancel Done</button>`:''}${!n.done?`<button class="btn btn-ghost" data-done="${escapeHtml(n.id)}">Done</button>`:''}<button class="btn btn-ghost-danger" data-delete="${escapeHtml(n.id)}">Delete</button></div></div>`).join('')||'<p class="planner-muted">No notes yet.</p>'}</section>`;
 
  host.insertAdjacentHTML('beforeend', `<section class="planner-card"><div class="planner-heading"><h2>Package Settings</h2><button type="button" class="btn btn-ghost" onclick="openPackageNameSettings()">Edit Package</button></div><p class="planner-muted">Manage package names, inclusions and dropdown order.</p></section>`);
 
+ host.querySelectorAll('[data-note-check]').forEach(el=>el.onchange=()=>togglePlannerChecklist(el.dataset.noteCheck,Number(el.dataset.itemIndex),el.checked,el));
  host.querySelectorAll('[data-copy]').forEach(el=>el.onclick=()=>copyPlannerNote(el.dataset.copy));
  host.querySelectorAll('[data-reopen]').forEach(el=>el.onclick=()=>reopenPlannerNote(el.dataset.reopen));
  host.querySelectorAll('[data-delete]').forEach(el=>el.onclick=()=>deletePlannerNote(el.dataset.delete));
  host.querySelectorAll('[data-booking]').forEach(el=>el.onclick=()=>openBookingForm(el.dataset.booking));host.querySelectorAll('[data-note]').forEach(el=>el.onclick=()=>openPlannerNote(el.dataset.note));host.querySelectorAll('[data-done]').forEach(el=>el.onclick=()=>completePlannerNote(el.dataset.done));
 }
+function plannerChecklistHtml(note){
+ return (note.checklist||[]).map((item,i)=>`<label class="pn-check-row"><input type="checkbox" data-note-check="${escapeHtml(note.id)}" data-item-index="${i}" ${item.done?'checked':''} aria-label="${escapeHtml(item.text)}"><span class="pn-item-text">${escapeHtml(item.text)}</span></label>`).join('');
+}
+async function togglePlannerChecklist(id,index,checked,control){
+ const note=plannerNotes.find(n=>n.id===id),item=note?.checklist?.[index];if(!item)return;
+ const old=item.done;item.done=checked;control.disabled=true;
+ try{await savePlannerNotes();}catch(error){item.done=old;control.checked=old;showToast('Could not save checklist. Please try again.');}finally{control.disabled=false;}
+}
+function addPlannerChecklistItem(text='',done=false){
+ const host=document.getElementById('pnChecklist');if(!host)return;
+ const row=document.createElement('div');row.className='pn-check-row';
+ row.innerHTML='<input type="checkbox" aria-label="Item completed"><input class="pn-item-text" type="text" maxlength="500" placeholder="Checklist item" aria-label="Checklist item"><button class="btn btn-ghost" type="button" aria-label="Remove item">×</button>';
+ row.querySelector('input[type=checkbox]').checked=done;row.querySelector('input[type=text]').value=text;row.querySelector('button').onclick=()=>row.remove();host.appendChild(row);
+ if(!text)row.querySelector('input[type=text]').focus();
+}
+
 function openPlannerNote(id){const n=plannerNotes.find(n=>n.id===id)||{};
- showModal(`<div class="overlay"><div class="modal"><div class="modal-head"><h2>${id?'Edit Note':'New Note'}</h2><button class="modal-close" onclick="closeModal()">✕</button></div><form class="modal-body" id="plannerNoteForm"><div class="field"><label>Note</label><textarea id="pnText" required maxlength="2000">${escapeHtml(n.text||'')}</textarea></div><div class="field"><label>Event schedule</label><input id="pnEvent" type="datetime-local" required value="${n.eventAt||''}"></div><div class="field"><label>Remind Me At</label><input id="pnReminder" type="datetime-local" required value="${n.remindAt||''}"></div><p>Reminder appears on Home when the app is open. Times use this device’s local time.</p><div class="planner-form-actions"><button class="btn btn-ghost" type="button" onclick="closeModal()">Cancel</button><button class="btn btn-primary" type="submit">Save Note</button></div></form></div></div>`);
- document.getElementById('plannerNoteForm').onsubmit=async e=>{e.preventDefault();const note={id:id||uid(),text:document.getElementById('pnText').value.trim(),eventAt:document.getElementById('pnEvent').value,remindAt:document.getElementById('pnReminder').value,done:!!n.done};if(!note.text)return;const old=plannerNotes;plannerNotes=[...old.filter(x=>x.id!==note.id),note];try{await savePlannerNotes();closeModal();renderPlanner();checkPlannerReminders();}catch(err){plannerNotes=old;showToast('Could not save note. Please try again.');}};
+ showModal(`<div class="overlay"><div class="modal"><div class="modal-head"><h2>${id?'Edit Note':'New Note'}</h2><button class="modal-close" onclick="closeModal()">✕</button></div><form class="modal-body" id="plannerNoteForm"><div class="field"><label>Checklist</label><div id="pnChecklist"></div><button type="button" class="btn btn-ghost" onclick="addPlannerChecklistItem()">+ Add Item</button></div><div class="field"><label>Note</label><textarea id="pnText" maxlength="2000">${escapeHtml(n.text||'')}</textarea></div><div class="field"><label>Event schedule</label><input id="pnEvent" type="datetime-local" required value="${n.eventAt||''}"></div><div class="field"><label>Remind Me At</label><input id="pnReminder" type="datetime-local" required value="${n.remindAt||''}"></div><p>Reminder appears on Home when the app is open. Times use this device’s local time.</p><div class="planner-form-actions"><button class="btn btn-ghost" type="button" onclick="closeModal()">Cancel</button><button class="btn btn-primary" type="submit">Save Note</button></div></form></div></div>`);
+ (n.checklist||[]).forEach(item=>addPlannerChecklistItem(item.text,item.done));
+ if(!(n.checklist||[]).length)addPlannerChecklistItem();
+ document.getElementById('plannerNoteForm').onsubmit=async e=>{e.preventDefault();const note={id:id||uid(),text:document.getElementById('pnText').value.trim(),eventAt:document.getElementById('pnEvent').value,remindAt:document.getElementById('pnReminder').value,done:!!n.done,checklist:Array.from(document.querySelectorAll('#pnChecklist .pn-check-row'),row=>({text:row.querySelector('input[type=text]').value.trim(),done:row.querySelector('input[type=checkbox]').checked})).filter(item=>item.text)};if(!note.text&&!note.checklist.length){showToast('Add a checklist item or a note.');return;}const old=plannerNotes;plannerNotes=[...old.filter(x=>x.id!==note.id),note];try{await savePlannerNotes();closeModal();renderPlanner();checkPlannerReminders();}catch(err){plannerNotes=old;showToast('Could not save note. Please try again.');}};
 }
 async function completePlannerNote(id){const n=plannerNotes.find(n=>n.id===id);if(!n)return;n.done=true;try{await savePlannerNotes();document.getElementById('plannerPopup')?.remove();renderPlanner();checkPlannerReminders();}catch(e){n.done=false;showToast('Could not save. Please try again.');}}
 const plannerDismissed=new Set();
@@ -2362,7 +2381,7 @@ function checkPlannerReminders(){
  const popup=document.getElementById('plannerPopup');if(popup){const note=plannerNotes.find(n=>n.id===popup.dataset.noteId);if(!note||!plannerNoteUpcoming(note))popup.remove();}
  if(!dataLoaded||currentView!=='home'||document.getElementById('plannerPopup'))return;
  const due=plannerNotes.filter(n=>plannerNoteUpcoming(n)&&!n.done&&!plannerDismissed.has(n.id)&&new Date(n.remindAt).getTime()<=Date.now());if(!due.length)return;
- const note=due[0],box=document.createElement('aside');box.id='plannerPopup';box.dataset.noteId=note.id;box.setAttribute('role','status');box.innerHTML=`<strong>Reminder${due.length>1?' · '+due.length:''}</strong><p>${escapeHtml(note.text)}</p><small>${escapeHtml(note.eventAt.replace('T',' · '))}</small><div><button class="btn btn-ghost" id="pnLater">Later</button><button class="btn btn-primary" id="pnDone">Done</button></div>`;document.body.appendChild(box);box.querySelector('#pnLater').onclick=()=>{plannerDismissed.add(note.id);box.remove();checkPlannerReminders();};box.querySelector('#pnDone').onclick=()=>completePlannerNote(note.id);
+ const note=due[0],box=document.createElement('aside');box.id='plannerPopup';box.dataset.noteId=note.id;box.setAttribute('role','status');box.innerHTML=`<strong>Reminder${due.length>1?' · '+due.length:''}</strong><p style="white-space:pre-wrap">${escapeHtml((note.checklist||[]).map(item=>(item.done?'☑ ':'○ ')+item.text).join('\n'))}</p><p>${escapeHtml(note.text)}</p><small>${escapeHtml(note.eventAt.replace('T',' · '))}</small><div><button class="btn btn-ghost" id="pnLater">Later</button><button class="btn btn-primary" id="pnDone">Done</button></div>`;document.body.appendChild(box);box.querySelector('#pnLater').onclick=()=>{plannerDismissed.add(note.id);box.remove();checkPlannerReminders();};box.querySelector('#pnDone').onclick=()=>completePlannerNote(note.id);
 }
 setInterval(()=>{if(currentView==='planner')renderPlanner();checkPlannerReminders();},30000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkPlannerReminders();});
